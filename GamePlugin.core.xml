@@ -4,10 +4,28 @@
         <name>OgvPlayer.GamePlugin.core</name>
     </assembly>
     <members>
-        <member name="T:Debug.DebugCorePlugin">
+        <member name="T:OgvPlayer.VideoPlayer">
+            <summary>
+            Full class not implemented in Monogame main branch.
+            Used the Monogame-SDL2 branch, which had this implemented
+            Monogame-SDL2 https://github.com/flibitijibibo/MonoGame
+            </summary>
+        </member>
+        <member name="T:OgvPlayer.DebugCorePlugin">
             <summary>
             Defines a Duality core plugin.
             </summary>
         </member>
+        <member name="F:OgvPlayer.OgvVideo.AlBuffer_NotAvailable">
+            <summary>
+            A dummy OpenAL buffer handle, indicating that the buffer in question is not available.
+            </summary>
+        </member>
+        <member name="F:OgvPlayer.OgvVideo.AlBuffer_StreamMe">
+            <summary>
+            A dummy OpenAL buffer handle, indicating that the buffer in question is inactive due to streaming.
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:OgvPlayer.OgvVideo.DisposeAlBuffer" -->
     </members>
 </doc>

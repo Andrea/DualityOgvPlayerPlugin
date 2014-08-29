@@ -43,12 +43,9 @@ namespace OgvPlayer
 
         public void OnInit(InitContext context)
         {
-            // Check out the file...
-            _fileName = Normalize(FileName);
-            if (_fileName == null)
-            {
-                throw new Exception("File " + FileName + " does not exist!");
-            }
+            if(context != InitContext.Activate)
+                return;
+            
 
             // Set everything to NULL. Yes, this actually matters later.
             theoraDecoder = IntPtr.Zero;
@@ -83,31 +80,6 @@ namespace OgvPlayer
 
         }
 
-        internal static string Normalize(string fileName)
-        {
-            if (File.Exists(fileName))
-            {
-                return fileName;
-            }
-
-
-            if (!string.IsNullOrEmpty(Path.GetExtension(fileName)))
-            {
-                return null;
-            }
-
-
-            if (File.Exists(fileName + ".ogv"))
-            {
-                return fileName + ".ogv";
-            }
-            if (File.Exists(fileName + ".ogg"))
-            {
-                return fileName + ".ogg";
-            }
-
-            return null;
-        }
 
         internal void Initialize()
         {
@@ -120,11 +92,11 @@ namespace OgvPlayer
             theoraDecoder = TheoraPlay.THEORAPLAY_startDecodeFile(
                 _fileName,
                 150, // Arbitrarily 5 seconds in a 30fps movie.
-#if VIDEOPLAYER_OPENGL
-                TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_IYUV
-#else
+#if !VIDEOPLAYER_OPENGL
                 // Use the TheoraPlay software converter.
                 TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_RGBA
+#else
+                TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_IYUV
 #endif
 );
 
@@ -159,7 +131,88 @@ namespace OgvPlayer
     [Serializable]
     public class OgvVideo : Resource
     {
+        private OgvVideo(ContentRef<OgvVideo> beep)
+        {
+            throw new NotImplementedException();
+        }
+
         public const string FileExt = "OgvVideo.res";
+        public static ContentRef<OgvVideo> Beep { get; private set; }
+
+        internal static void InitDefaultContent()
+        {
+            const string VirtualContentPath = ContentProvider.VirtualContentPath + "Sound:";
+            const string ContentPath_Beep = VirtualContentPath + "Beep";
+
+            ContentProvider.AddContent(ContentPath_Beep, new OgvVideo(OgvVideo.Beep));
+
+            Beep = ContentProvider.RequestContent<OgvVideo>(ContentPath_Beep);
+        }
+
+        public OgvVideo(string filepath)
+        {
+            var fileName = NormalizeFileName(filepath);
+			LoadOgvVorbisData(fileName);
+		}
+        private byte[] data = null;
+
+        public void LoadOgvVorbisData(string ogvVorbisPath = null)
+        {
+            if (ogvVorbisPath == null) 
+                ogvVorbisPath = sourcePath;
+
+            sourcePath = ogvVorbisPath;
+
+            if (String.IsNullOrEmpty(this.sourcePath) || !File.Exists(this.sourcePath))
+                data = null;
+            else
+                data = File.ReadAllBytes(this.sourcePath);
+
+            this.DisposeAlBuffer();
+        }
+
+        /// <summary>
+        /// A dummy OpenAL buffer handle, indicating that the buffer in question is not available.
+        /// </summary>
+        public const int AlBuffer_NotAvailable = 0;
+        /// <summary>
+        /// A dummy OpenAL buffer handle, indicating that the buffer in question is inactive due to streaming.
+        /// </summary>
+        public const int AlBuffer_StreamMe = -1;
+
+        [NonSerialized]
+        private int alBuffer = AlBuffer_NotAvailable;
+
+        // <summary>
+        /// Disposes the AudioDatas OpenAL buffer.
+        /// </summary>
+        /// <seealso cref="SetupAlBuffer"/>
+        public void DisposeAlBuffer()
+        {
+            if (alBuffer > AlBuffer_NotAvailable) 
+                OpenTK.Audio.OpenAL.AL.DeleteBuffer(alBuffer);
+            alBuffer = AlBuffer_NotAvailable;
+            
+        }
+        
+        internal static string NormalizeFileName(string fileName)
+        {
+            //not terribly sure if this method is truly necessary but it was there for monogame
+            if (File.Exists(fileName))
+                return fileName;
+            
+            if (!string.IsNullOrEmpty(System.IO.Path.GetExtension(fileName))) 
+                return null;
+
+            if (File.Exists(fileName + ".ogv"))
+                return fileName + ".ogv";
+
+            if (File.Exists(fileName + ".ogg"))
+                return fileName + ".ogg";
+
+            return null;
+        }
+
     }
 
     public enum MediaState

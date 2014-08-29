@@ -39,6 +39,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Duality;
 using Duality.Resources;
 using OpenTK.Audio.OpenAL;
 using OpenTK.Graphics.OpenGL;
@@ -47,7 +48,6 @@ using OpenTK.Graphics.OpenGL;
 
 namespace OgvPlayer
 {
-    #region MONOGAME - MODIFICATION
     /// <summary>
     /// Full class not implemented in Monogame main branch.
     /// Used the Monogame-SDL2 branch, which had this implemented
@@ -239,11 +239,16 @@ namespace OgvPlayer
 
             // Attach the Texture2D to the framebuffer.
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, rgbaFramebuffer);
+
+            int videoTexture_glTexture_THISISA_BULLSHIT_TEMP_VALUE = 0 ;
+            
+            
+            
             GL.FramebufferTexture2D(
                 FramebufferTarget.Framebuffer,
                 FramebufferAttachment.ColorAttachment0,
                 TextureTarget.Texture2D,
-                videoTexture.glTexture,
+                videoTexture_glTexture_THISISA_BULLSHIT_TEMP_VALUE,
                 0
             );
 
@@ -804,11 +809,11 @@ namespace OgvPlayer
 
                 Texture overlap = videoTexture;
                 videoTexture = new Texture(
-                    Game.Instance.GraphicsDevice,
-                    (int)currentVideo.width,
-                    (int)currentVideo.height,
-                    false,
-                    SurfaceFormat.Color
+//                    Game.Instance.GraphicsDevice,
+//                    (int)currentVideo.width,
+//                    (int)currentVideo.height,
+//                    false,
+//                    SurfaceFormat.Color
                 );
                 overlap.Dispose();
 #if VIDEOPLAYER_OPENGL
@@ -820,14 +825,14 @@ namespace OgvPlayer
             }
 
             // Initialize the thread!
-            System.Console.Write("Starting Theora player...");
+            Log.Editor.Write("Starting Theora player...");
             while (!audioStarted) ;
             timer.Start();
             if (audioSourceIndex != -1)
             {
                 AL.SourcePlay(audioSourceIndex);
             }
-            System.Console.WriteLine(" Done!");
+            Log.Editor.Write(" Done starting Theora player!");
         }
 
         public void Stop()
@@ -848,7 +853,7 @@ namespace OgvPlayer
             {
                 return;
             }
-            System.Console.Write("Signaled Theora player to stop, waiting...");
+            Log.Editor.Write("Signaled Theora player to stop, waiting...");
             timer.Stop();
             timer.Reset();
             audioDecoderThread.Join();
@@ -857,7 +862,7 @@ namespace OgvPlayer
                 TheoraPlay.THEORAPLAY_freeVideo(previousFrame);
             }
             Video.Dispose();
-            System.Console.WriteLine(" Done!");
+            Log.Editor.Write("Theora player stopped!");
         }
 
         public void Pause()
@@ -903,7 +908,6 @@ namespace OgvPlayer
         }
         #endregion
 
-        #region The Theora audio decoder thread
         private bool StreamAudio(int buffer)
         {
             // The size of our abstracted buffer.
@@ -982,14 +986,14 @@ namespace OgvPlayer
             while (State != MediaState.Stopped)
             {
                 // Emergency use only
-                if (Game.Instance == null)
-                {
-                    System.Console.WriteLine("Game exited before Video! Bailing.");
-                    AL.SourceStop(audioSourceIndex);
-                    AL.DeleteSource(audioSourceIndex);
-                    AL.DeleteBuffers(buffers);
-                    return;
-                }
+//                if (Game.Instance == null)
+//                {
+//                    System.Console.WriteLine("Game exited before Video! Bailing.");
+//                    AL.SourceStop(audioSourceIndex);
+//                    AL.DeleteSource(audioSourceIndex);
+//                    AL.DeleteBuffers(buffers);
+//                    return;
+//                }
 
                 // When a buffer has been processed, refill it.
                 int processed;
@@ -1017,7 +1021,5 @@ namespace OgvPlayer
             audioStarted = false;
             audioSourceIndex = -1;
         }
-        #endregion
     }
-    #endregion
 }
