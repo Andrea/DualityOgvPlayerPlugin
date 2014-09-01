@@ -13,8 +13,11 @@ namespace OgvPlayer
 	public class OgvComponent : Renderer, ICmpInitializable, ICmpUpdatable
 	{
 		private string _fileName;
+		[NonSerialized]
 		internal IntPtr theoraDecoder;
+		[NonSerialized]
 		internal IntPtr videoStream;
+		[NonSerialized]
 		private IntPtr _previousFrame;
 
 		public int Width { get; private set; }
@@ -34,9 +37,14 @@ namespace OgvPlayer
 			}
 		}
 
+		[NonSerialized]
 		private float INTERNAL_fps = 0.0f;
+		[NonSerialized]
 		private TheoraPlay.THEORAPLAY_VideoFrame _nextVideo;
+		[NonSerialized]
 		private TheoraPlay.THEORAPLAY_VideoFrame _currentVideo;
+		[NonSerialized]
+		private float _elapsedFrameTime;
 		public bool IsDisposed { get; set; }
 
 		public ContentRef<Texture> TextureOne { get; set; }
@@ -79,11 +87,9 @@ namespace OgvPlayer
 				Initialize();
 
 			TextureOne = new ContentRef<Texture>(new Texture(Width, Height, 
-				format: PixelInternalFormat.Luminance, 
-				filterMag: TextureMagFilter.Nearest, 
-				filterMin: TextureMinFilter.Nearest));
-			TextureTwo = new ContentRef<Texture>(new Texture(Width, Height, format: PixelInternalFormat.Luminance, filterMag: TextureMagFilter.Nearest, filterMin: TextureMinFilter.Nearest));
-			TextureThree = new ContentRef<Texture>(new Texture(Width, Height, format: PixelInternalFormat.Luminance, filterMag: TextureMagFilter.Nearest, filterMin: TextureMinFilter.Nearest));
+				format: PixelInternalFormat.Luminance));
+			TextureTwo = new ContentRef<Texture>(new Texture(Width / 2, Height / 2, format: PixelInternalFormat.Luminance));
+			TextureThree = new ContentRef<Texture>(new Texture(Width / 2, Height / 2, format: PixelInternalFormat.Luminance));
 
 			// FIXME: This is a part of the Duration hack!
 			Duration = TimeSpan.MaxValue;
@@ -158,6 +164,12 @@ namespace OgvPlayer
 
 		public void OnUpdate()
 		{
+			_elapsedFrameTime += (float)Time.LastDelta * Time.TimeScale;
+			if (_elapsedFrameTime < _currentVideo.playms)
+			{
+				return;
+			}
+			
 			_currentVideo = _nextVideo;
 			var nextFrame = TheoraPlay.THEORAPLAY_getVideo(theoraDecoder);
 
