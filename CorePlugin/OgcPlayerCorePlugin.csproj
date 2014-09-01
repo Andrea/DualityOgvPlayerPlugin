@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CircularBuffer.cs" />
+    <Compile Include="FmodTheoraStream.cs" />
     <Compile Include="Fmod\fmod.cs" />
     <Compile Include="Fmod\fmod_dsp.cs" />
     <Compile Include="Fmod\fmod_errors.cs" />
@@ -61,7 +62,6 @@
     <Compile Include="Fmod\fmod_memoryinfo.cs" />
     <Compile Include="MediaState.cs" />
     <Compile Include="OgvDrawTechnique.cs" />
-    <Compile Include="VideoPlayer.cs" />
     <Compile Include="CorePlugin.cs" />
     <Compile Include="OgvComponent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

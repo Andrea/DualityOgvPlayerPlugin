@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 namespace OgvPlayer
 {
@@ -158,7 +159,7 @@ namespace OgvPlayer
 				throw new InvalidOperationException("Buffer is empty.");
 
 			var item = _buffer[_head];
-			if (_head++ == _capacity)
+			if (++_head == _capacity)
 				_head = 0;
 			_size--;
 			return item;

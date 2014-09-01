@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Duality;
 using Duality.Components;
 using Duality.Drawing;
@@ -15,12 +14,29 @@ namespace OgvPlayer
 	public class OgvComponent : Renderer, ICmpInitializable, ICmpUpdatable
 	{
 		private string _fileName;
-		[NonSerialized]
-		internal IntPtr theoraDecoder;
-		[NonSerialized]
-		internal IntPtr videoStream;
+		[NonSerialized] 
+		private IntPtr _theoraDecoder;
+		[NonSerialized] 
+		private IntPtr _videoStream;
 		[NonSerialized]
 		private IntPtr _previousFrame;
+		[NonSerialized]
+		private float _internalFps = 0.0f;
+		[NonSerialized]
+		private TheoraPlay.THEORAPLAY_VideoFrame _nextVideo;
+		[NonSerialized]
+		private TheoraPlay.THEORAPLAY_VideoFrame _currentVideo;
+		[NonSerialized]
+		private float _elapsedFrameTime;
+		[NonSerialized]
+		private float _startTime;
+
+		[NonSerialized]
+		private Texture _textureOne;
+		[NonSerialized]
+		private Texture _textureTwo;
+		[NonSerialized]
+		private Texture _textureThree;
 
 		public int Width { get; private set; }
 
@@ -39,19 +55,9 @@ namespace OgvPlayer
 			}
 		}
 
-		[NonSerialized]
-		private float INTERNAL_fps = 0.0f;
-		[NonSerialized]
-		private TheoraPlay.THEORAPLAY_VideoFrame _nextVideo;
-		[NonSerialized]
-		private TheoraPlay.THEORAPLAY_VideoFrame _currentVideo;
-		[NonSerialized]
-		private float _elapsedFrameTime;
+		
 		public bool IsDisposed { get; set; }
 
-		public ContentRef<Texture> TextureOne { get; set; }
-		public ContentRef<Texture> TextureTwo { get; set; }
-		public ContentRef<Texture> TextureThree { get; set; }
 		public ContentRef<Material> Material { get; set; }
 
 		// FIXME: This is hacked, look up "This is a part of the Duration hack!"
@@ -65,35 +71,36 @@ namespace OgvPlayer
 		{
 			get
 			{
-				return INTERNAL_fps;
+				return _internalFps;
 			}
 			internal set
 			{
-				INTERNAL_fps = value;
+				_internalFps = value;
 			}
 		}
 
 		public void OnInit(InitContext context)
 		{
-			if (context != InitContext.Activate)
+			if (context != InitContext.Activate || DualityApp.ExecContext == DualityApp.ExecutionContext.Editor)
 				return;
 
 
 			// Set everything to NULL. Yes, this actually matters later.
-			theoraDecoder = IntPtr.Zero;
-			videoStream = IntPtr.Zero;
+			_theoraDecoder = IntPtr.Zero;
+			_videoStream = IntPtr.Zero;
 
 			// Initialize the decoder nice and early...
 			//IsDisposed = true;
+			FmodTheoraStream.Init();
+
 			if (!string.IsNullOrEmpty(_fileName))
 				Initialize();
 
-			TextureOne = new ContentRef<Texture>(new Texture(Width, Height, 
-				format: PixelInternalFormat.Luminance));
-			TextureTwo = new ContentRef<Texture>(new Texture(Width / 2, Height / 2, format: PixelInternalFormat.Luminance));
-			TextureThree = new ContentRef<Texture>(new Texture(Width / 2, Height / 2, format: PixelInternalFormat.Luminance));
 
-			FmodTheoraStream.Init();
+			_textureOne = new Texture(Width, Height, format: PixelInternalFormat.Luminance);
+			_textureTwo = new Texture(Width / 2, Height / 2, format: PixelInternalFormat.Luminance);
+			_textureThree = new Texture(Width / 2, Height / 2, format: PixelInternalFormat.Luminance);
+
 
 			// FIXME: This is a part of the Duration hack!
 			Duration = TimeSpan.MaxValue;
@@ -103,23 +110,22 @@ namespace OgvPlayer
 		{
 
 			// Stop and unassign the decoder.
-			if (theoraDecoder != IntPtr.Zero)
+			if (_theoraDecoder != IntPtr.Zero)
 			{
-				TheoraPlay.THEORAPLAY_stopDecode(theoraDecoder);
-				theoraDecoder = IntPtr.Zero;
+				TheoraPlay.THEORAPLAY_stopDecode(_theoraDecoder);
+				_theoraDecoder = IntPtr.Zero;
 			}
 
 			// Free and unassign the video stream.
-			if (videoStream != IntPtr.Zero)
+			if (_videoStream != IntPtr.Zero)
 			{
-				TheoraPlay.THEORAPLAY_freeVideo(videoStream);
-				videoStream = IntPtr.Zero;
+				TheoraPlay.THEORAPLAY_freeVideo(_videoStream);
+				_videoStream = IntPtr.Zero;
 			}
 
 			IsDisposed = true;
-
+			_startTime = (float) Time.GameTimer.TotalMilliseconds;
 		}
-
 
 		internal void Initialize()
 		{
@@ -129,7 +135,7 @@ namespace OgvPlayer
 			}
 
 			// Initialize the decoder.
-			theoraDecoder = TheoraPlay.THEORAPLAY_startDecodeFile(
+			_theoraDecoder = TheoraPlay.THEORAPLAY_startDecodeFile(
 				_fileName,
 				150, // Arbitrarily 5 seconds in a 30fps movie.
 				//#if !VIDEOPLAYER_OPENGL
@@ -138,24 +144,27 @@ namespace OgvPlayer
 				//#else
 				TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_IYUV
 				//#endif
-);
+			);
 
 			// Wait until the decoder is ready.
-			while (TheoraPlay.THEORAPLAY_isInitialized(theoraDecoder) == 0)
+			while (TheoraPlay.THEORAPLAY_isInitialized(_theoraDecoder) == 0)
 			{
 				Thread.Sleep(10);
 			}
 
+		//TODO: Move this later
+			
+			Task.Factory.StartNew(DecodeAudio);
 			// Initialize the video stream pointer and get our first frame.
-			if (TheoraPlay.THEORAPLAY_hasVideoStream(theoraDecoder) != 0)
+			if (TheoraPlay.THEORAPLAY_hasVideoStream(_theoraDecoder) != 0)
 			{
-				while (videoStream == IntPtr.Zero)
+				while (_videoStream == IntPtr.Zero)
 				{
-					videoStream = TheoraPlay.THEORAPLAY_getVideo(theoraDecoder);
+					_videoStream = TheoraPlay.THEORAPLAY_getVideo(_theoraDecoder);
 					Thread.Sleep(10);
 				}
 
-				var frame = TheoraPlay.getVideoFrame(videoStream);
+				var frame = TheoraPlay.getVideoFrame(_videoStream);
 
 				// We get the FramesPerSecond from the first frame.
 				FramesPerSecond = (float)frame.fps;
@@ -166,48 +175,66 @@ namespace OgvPlayer
 			IsDisposed = false;
 		}
 
-		public void OnUpdate()
+		private void DecodeAudio()
 		{
-			_elapsedFrameTime += (float)Time.LastDelta * Time.TimeScale;
-			if (_elapsedFrameTime < _currentVideo.playms)
-			{
-				return;
-			}
-			
-			_currentVideo = _nextVideo;
-			var nextFrame = TheoraPlay.THEORAPLAY_getVideo(theoraDecoder);
-
-			if (nextFrame != IntPtr.Zero)
-			{
-				TheoraPlay.THEORAPLAY_freeVideo(_previousFrame);
-				_previousFrame = videoStream;
-				videoStream = nextFrame;
-				_nextVideo = TheoraPlay.getVideoFrame(videoStream);
-			}
-
 			const int BUFFER_SIZE = 4096 * 2;
 
-			// Store our abstracted buffer into here.
+			StreamData(BUFFER_SIZE);
+			StreamData(BUFFER_SIZE);
+			StreamData(BUFFER_SIZE);
+			StreamData(BUFFER_SIZE);
+			while (true)
+			{
+				StreamData(BUFFER_SIZE);
+			}
+		}
+
+		private void StreamData(int buffferSize)
+		{
+			TheoraPlay.THEORAPLAY_AudioPacket currentAudio;
+			while (TheoraPlay.THEORAPLAY_availableAudio(_theoraDecoder) == 0)
+				;
+
 			var data = new List<float>();
 
-			TheoraPlay.THEORAPLAY_AudioPacket currentAudio;
-			currentAudio.channels = 0;
-			currentAudio.freq = 0;
-
-//			while (TheoraPlay.THEORAPLAY_availableAudio(theoraDecoder) == 0) ;
-			
-			while (data.Count < BUFFER_SIZE && TheoraPlay.THEORAPLAY_availableAudio(theoraDecoder) > 0)
+			while (data.Count < buffferSize && TheoraPlay.THEORAPLAY_availableAudio(_theoraDecoder) > 0)
 			{
-				var audioPtr = TheoraPlay.THEORAPLAY_getAudio(theoraDecoder);
+				var audioPtr = TheoraPlay.THEORAPLAY_getAudio(_theoraDecoder);
 				currentAudio = TheoraPlay.getAudioPacket(audioPtr);
-				data.AddRange(TheoraPlay.getSamples(
-						currentAudio.samples,
-						currentAudio.frames * currentAudio.channels)
-				);
+				data.AddRange(TheoraPlay.getSamples(currentAudio.samples, currentAudio.frames*currentAudio.channels));
 				TheoraPlay.THEORAPLAY_freeAudio(audioPtr);
 			}
 
 			FmodTheoraStream.Stream(data.ToArray());
+		}
+
+
+		public void OnUpdate()
+		{
+			if (Time.GameTimer.TotalMilliseconds - _startTime < 1000)
+				return;
+
+			_elapsedFrameTime += Time.LastDelta * Time.TimeScale;
+
+			bool missedFrame = false;
+			while (_currentVideo.playms <= _elapsedFrameTime && !missedFrame)
+			{
+				_currentVideo = _nextVideo;
+				var nextFrame = TheoraPlay.THEORAPLAY_getVideo(_theoraDecoder);
+
+				if (nextFrame != IntPtr.Zero)
+				{
+					TheoraPlay.THEORAPLAY_freeVideo(_previousFrame);
+					_previousFrame = _videoStream;
+					_videoStream = nextFrame;
+					_nextVideo = TheoraPlay.getVideoFrame(_videoStream);
+					missedFrame = false;
+				}
+				else
+				{
+					missedFrame = true;
+				}
+			}
 		}
 
 		public override void Draw(IDrawDevice device)
@@ -215,7 +242,7 @@ namespace OgvPlayer
 			if (_currentVideo.playms == 0)
 				return;
 
-			Texture.Bind(TextureOne);
+			Texture.Bind(_textureOne);
 			GL.TexSubImage2D(
 				TextureTarget.Texture2D,
 				0,
@@ -227,7 +254,7 @@ namespace OgvPlayer
 				PixelType.UnsignedByte,
 				_currentVideo.pixels);
 
-			Texture.Bind(TextureTwo);
+			Texture.Bind(_textureTwo);
 			GL.TexSubImage2D(
 			   TextureTarget.Texture2D,
 			   0,
@@ -243,7 +270,7 @@ namespace OgvPlayer
 			   )
 		   );
 
-			Texture.Bind(TextureThree);
+			Texture.Bind(_textureThree);
 			GL.TexSubImage2D(
 				TextureTarget.Texture2D,
 				0,
@@ -260,10 +287,10 @@ namespace OgvPlayer
 				)
 			);
 
-			var drawTechnique = (OgvDrawTechnique) Material.Res.Technique.Res;
-			drawTechnique.TextureOne = TextureOne.Res;
-			drawTechnique.TextureTwo = TextureTwo.Res;
-			drawTechnique.TextureThree = TextureThree.Res;
+			var drawTechnique = (OgvDrawTechnique)Material.Res.Technique.Res;
+			drawTechnique.TextureOne = _textureOne;
+			drawTechnique.TextureTwo = _textureTwo;
+			drawTechnique.TextureThree = _textureThree;
 
 			var targetRect = new Rect(device.TargetSize);
 			device.AddVertices(Material, VertexMode.Quads,
@@ -276,111 +303,6 @@ namespace OgvPlayer
 		public override float BoundRadius
 		{
 			get { return float.MaxValue; }
-		}
-	}
-
-	public class FmodTheoraStream
-	{
-		private static Fmod.System system = null;
-		private static Fmod.Sound sound = null;
-		private static Fmod.Channel channel = null;
-		private static Fmod.CREATESOUNDEXINFO createsoundexinfo = new Fmod.CREATESOUNDEXINFO();
-		private static bool soundcreated = false;
-		private static Fmod.MODE mode = (Fmod.MODE._2D | Fmod.MODE.DEFAULT | Fmod.MODE.OPENUSER | Fmod.MODE.LOOP_NORMAL | Fmod.MODE.HARDWARE);
-		private static float[] _buffer = new float[0];
-		private static object _syncObject = new object();
-
-		public static void Init()
-		{
-			uint version = 0;
-			Fmod.RESULT result;
-			uint channels = 2, frequency = 48000;
-
-			/*
-				Create a System object and initialize.
-			*/
-			result = Fmod.Factory.System_Create(ref system);
-//			ERRCHECK(result);
-			result = system.getVersion(ref version);
-//			ERRCHECK(result);
-//			if (version < Fmod.VERSION.number)
-//			{
-//				MessageBox.Show("Error!  You are using an old version of Fmod " + version.ToString("X") + ".  This program requires " + Fmod.VERSION.number.ToString("X") + ".");
-//				Application.Exit();
-//			}
-			result = system.init(32, Fmod.INITFLAGS.NORMAL, (IntPtr)null);
-//			ERRCHECK(result);
-
-			createsoundexinfo.cbsize = Marshal.SizeOf(createsoundexinfo);
-			createsoundexinfo.fileoffset = 0;
-			createsoundexinfo.length = frequency * channels * 2 * 2;
-			createsoundexinfo.numchannels = (int)channels;
-			createsoundexinfo.defaultfrequency = (int)frequency;
-			createsoundexinfo.format = Fmod.SOUND_FORMAT.PCMFLOAT;
-			createsoundexinfo.pcmreadcallback += PcmReadCallback;
-			createsoundexinfo.dlsname = null;
-
-			if (!soundcreated)
-			{
-				result = system.createSound(
-					(string)null,
-					(mode | Fmod.MODE.CREATESTREAM),
-					ref createsoundexinfo,
-					ref sound);
-
-				soundcreated = true;
-			}
-			system.playSound(Fmod.CHANNELINDEX.FREE, sound, false, ref channel);
-		}
-
-		public static void Stream(float[] data)
-		{
-			lock (_syncObject)
-			{
-				var destinationIndex = _buffer.Length;
-				Array.Resize(ref _buffer, _buffer.Length + data.Length);
-				Array.Copy(data, 0, _buffer, destinationIndex, data.Length);
-			}
-		}
-
-		private static Fmod.RESULT PcmReadCallback(IntPtr soundraw, IntPtr data, uint datalen)
-		{
-			unsafe
-			{
-				uint count;
-
-				lock (_syncObject)
-				{
-					if (_buffer.Length == 0)
-						return Fmod.RESULT.OK;
-
-					var stereo32BitBuffer = (float*)data.ToPointer();
-
-					for (count = 0; count < (datalen >> 2); count+=2)
-					{
-						*stereo32BitBuffer++ = _buffer[count];
-						*stereo32BitBuffer++ = _buffer[count + 1];
-					}
-
-					var temp = new float[_buffer.Length - (datalen >> 2)];
-					Array.Copy(_buffer, (datalen >> 2), temp, 0, _buffer.Length - (datalen >> 2));
-					_buffer = temp;
-				}
-
-//				short* stereo16bitbuffer = (short*)data.ToPointer();
-//
-//				for (count = 0; count < (datalen >> 2); count++)        // >>2 = 16bit stereo (4 bytes per sample)
-//				{
-//					*stereo16bitbuffer++ = (short)(Math.Sin(t1) * 32767.0f);    // left channel
-//					*stereo16bitbuffer++ = (short)(Math.Sin(t2) * 32767.0f);    // right channel
-//
-//					t1 += 0.01f + v1;
-//					t2 += 0.0142f + v2;
-//					v1 += (float)(Math.Sin(t1) * 0.002f);
-//					v2 += (float)(Math.Sin(t2) * 0.002f);
-//				}
-			}
-			return Fmod.RESULT.OK;
 		}
 	}
 }
