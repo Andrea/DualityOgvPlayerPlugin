@@ -16,16 +16,5 @@
             Defines a Duality core plugin.
             </summary>
         </member>
-        <member name="F:OgvPlayer.OgvVideo.AlBuffer_NotAvailable">
-            <summary>
-            A dummy OpenAL buffer handle, indicating that the buffer in question is not available.
-            </summary>
-        </member>
-        <member name="F:OgvPlayer.OgvVideo.AlBuffer_StreamMe">
-            <summary>
-            A dummy OpenAL buffer handle, indicating that the buffer in question is inactive due to streaming.
-            </summary>
-        </member>
-        <!-- Badly formed XML comment ignored for member "M:OgvPlayer.OgvVideo.DisposeAlBuffer" -->
     </members>
 </doc>
