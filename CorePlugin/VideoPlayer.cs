@@ -518,9 +518,9 @@ namespace OgvPlayer
 
             // Be sure we can even get something from TheoraPlay...
             if (State == MediaState.Stopped ||
-                    Video.theoraDecoder == IntPtr.Zero ||
-                    TheoraPlay.THEORAPLAY_isInitialized(Video.theoraDecoder) == 0 ||
-                    TheoraPlay.THEORAPLAY_hasVideoStream(Video.theoraDecoder) == 0)
+                    Video.TheoraDecoder == IntPtr.Zero ||
+                    TheoraPlay.THEORAPLAY_isInitialized(Video.TheoraDecoder) == 0 ||
+                    TheoraPlay.THEORAPLAY_hasVideoStream(Video.TheoraDecoder) == 0)
             {
                 return videoTexture; // Screw it, give them the old one.
             }
@@ -530,13 +530,13 @@ namespace OgvPlayer
             while (nextVideo.playms <= timer.ElapsedMilliseconds && !missedFrame)
             {
                 currentVideo = nextVideo;
-                IntPtr nextFrame = TheoraPlay.THEORAPLAY_getVideo(Video.theoraDecoder);
+                IntPtr nextFrame = TheoraPlay.THEORAPLAY_getVideo(Video.TheoraDecoder);
                 if (nextFrame != IntPtr.Zero)
                 {
                     TheoraPlay.THEORAPLAY_freeVideo(previousFrame);
-                    previousFrame = Video.videoStream;
-                    Video.videoStream = nextFrame;
-                    nextVideo = TheoraPlay.getVideoFrame(Video.videoStream);
+                    previousFrame = Video.VideoStream;
+                    Video.VideoStream = nextFrame;
+                    nextVideo = TheoraPlay.getVideoFrame(Video.VideoStream);
                     missedFrame = false;
                 }
                 else
@@ -545,7 +545,7 @@ namespace OgvPlayer
                     missedFrame = true;
                 }
 
-                if (TheoraPlay.THEORAPLAY_isDecoding(Video.theoraDecoder) == 0)
+                if (TheoraPlay.THEORAPLAY_isDecoding(Video.TheoraDecoder) == 0)
                 {
                     // FIXME: This is part of the Duration hack!
                     Video.Duration = new TimeSpan(0, 0, 0, 0, (int)currentVideo.playms);
@@ -572,7 +572,7 @@ namespace OgvPlayer
                         Video.Initialize();
 
                         // Grab the initial audio again.
-                        if (TheoraPlay.THEORAPLAY_hasAudioStream(Video.theoraDecoder) != 0)
+                        if (TheoraPlay.THEORAPLAY_hasAudioStream(Video.TheoraDecoder) != 0)
                         {
                             audioDecoderThread = new Thread(new ThreadStart(DecodeAudio));
                             audioDecoderThread.Start();
@@ -583,16 +583,16 @@ namespace OgvPlayer
                         }
 
                         // Grab the initial video again.
-                        if (TheoraPlay.THEORAPLAY_hasVideoStream(Video.theoraDecoder) != 0)
+                        if (TheoraPlay.THEORAPLAY_hasVideoStream(Video.TheoraDecoder) != 0)
                         {
-                            currentVideo = TheoraPlay.getVideoFrame(Video.videoStream);
-                            previousFrame = Video.videoStream;
+                            currentVideo = TheoraPlay.getVideoFrame(Video.VideoStream);
+                            previousFrame = Video.VideoStream;
                             do
                             {
                                 // The decoder miiight not be ready yet.
-                                Video.videoStream = TheoraPlay.THEORAPLAY_getVideo(Video.theoraDecoder);
-                            } while (Video.videoStream == IntPtr.Zero);
-                            nextVideo = TheoraPlay.getVideoFrame(Video.videoStream);
+                                Video.VideoStream = TheoraPlay.THEORAPLAY_getVideo(Video.TheoraDecoder);
+                            } while (Video.VideoStream == IntPtr.Zero);
+                            nextVideo = TheoraPlay.getVideoFrame(Video.VideoStream);
                         }
 
                         // FIXME: Maybe use an actual thread synchronization technique.
@@ -786,7 +786,7 @@ namespace OgvPlayer
             }
 
             // Grab the first bit of audio. We're trying to start the decoding ASAP.
-            if (TheoraPlay.THEORAPLAY_hasAudioStream(Video.theoraDecoder) != 0)
+            if (TheoraPlay.THEORAPLAY_hasAudioStream(Video.TheoraDecoder) != 0)
             {
                 audioDecoderThread.Start();
             }
@@ -796,16 +796,16 @@ namespace OgvPlayer
             }
 
             // Grab the first bit of video, set up the texture.
-            if (TheoraPlay.THEORAPLAY_hasVideoStream(Video.theoraDecoder) != 0)
+            if (TheoraPlay.THEORAPLAY_hasVideoStream(Video.TheoraDecoder) != 0)
             {
-                currentVideo = TheoraPlay.getVideoFrame(Video.videoStream);
-                previousFrame = Video.videoStream;
+                currentVideo = TheoraPlay.getVideoFrame(Video.VideoStream);
+                previousFrame = Video.VideoStream;
                 do
                 {
                     // The decoder miiight not be ready yet.
-                    Video.videoStream = TheoraPlay.THEORAPLAY_getVideo(Video.theoraDecoder);
-                } while (Video.videoStream == IntPtr.Zero);
-                nextVideo = TheoraPlay.getVideoFrame(Video.videoStream);
+                    Video.VideoStream = TheoraPlay.THEORAPLAY_getVideo(Video.TheoraDecoder);
+                } while (Video.VideoStream == IntPtr.Zero);
+                nextVideo = TheoraPlay.getVideoFrame(Video.VideoStream);
 
                 Texture overlap = videoTexture;
                 videoTexture = new Texture(
@@ -924,15 +924,15 @@ namespace OgvPlayer
             // Add to the buffer from the decoder until it's large enough.
             while (
                 State != MediaState.Stopped &&
-                TheoraPlay.THEORAPLAY_availableAudio(Video.theoraDecoder) == 0
+                TheoraPlay.THEORAPLAY_availableAudio(Video.TheoraDecoder) == 0
             ) ;
             while (
                 data.Count < BUFFER_SIZE &&
                 State != MediaState.Stopped &&
-                TheoraPlay.THEORAPLAY_availableAudio(Video.theoraDecoder) > 0
+                TheoraPlay.THEORAPLAY_availableAudio(Video.TheoraDecoder) > 0
             )
             {
-                IntPtr audioPtr = TheoraPlay.THEORAPLAY_getAudio(Video.theoraDecoder);
+                IntPtr audioPtr = TheoraPlay.THEORAPLAY_getAudio(Video.TheoraDecoder);
                 currentAudio = TheoraPlay.getAudioPacket(audioPtr);
                 data.AddRange(
                     TheoraPlay.getSamples(
