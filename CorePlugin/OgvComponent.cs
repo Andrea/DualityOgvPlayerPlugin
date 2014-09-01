@@ -8,7 +8,6 @@ namespace OgvPlayer
     [Serializable]
     public class OgvComponent : Component, ICmpInitializable
     {
-
         private string _fileName;
         internal IntPtr theoraDecoder;
         internal IntPtr videoStream;
@@ -154,6 +153,7 @@ namespace OgvPlayer
             var fileName = NormalizeFileName(filepath);
 			LoadOgvVorbisData(fileName);
 		}
+
         private byte[] data = null;
 
         public void LoadOgvVorbisData(string ogvVorbisPath = null)
