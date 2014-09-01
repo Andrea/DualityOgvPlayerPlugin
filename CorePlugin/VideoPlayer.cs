@@ -514,7 +514,7 @@ namespace OgvPlayer
 
         public Texture GetTexture()
         {
-            checkDisposed();
+			checkDisposed();
 
             // Be sure we can even get something from TheoraPlay...
             if (State == MediaState.Stopped ||
