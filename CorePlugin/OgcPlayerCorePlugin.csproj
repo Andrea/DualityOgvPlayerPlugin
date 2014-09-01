@@ -25,6 +25,7 @@
     <DocumentationFile>GamePlugin.core.xml</DocumentationFile>
     <NoWarn>1591,1592,1573,1571,1570,1572</NoWarn>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -52,6 +53,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CircularBuffer.cs" />
+    <Compile Include="Fmod\fmod.cs" />
+    <Compile Include="Fmod\fmod_dsp.cs" />
+    <Compile Include="Fmod\fmod_errors.cs" />
+    <Compile Include="Fmod\fmod_event.cs" />
+    <Compile Include="Fmod\fmod_memoryinfo.cs" />
     <Compile Include="MediaState.cs" />
     <Compile Include="OgvDrawTechnique.cs" />
     <Compile Include="VideoPlayer.cs" />
@@ -75,6 +82,24 @@
     </None>
     <None Include="..\libs\TheoraPlayCs\libvorbis.dll">
       <Link>libvorbis.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\libs\FMod\fmodex.dll">
+      <Link>fmodex.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\libs\FMod\fmodex64.dll">
+      <Link>fmodex64.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\libs\FMod\fmod_event.dll">
+      <Link>fmod_event.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\libs\FMod\fmod_event64.dll">
+      <Link>fmod_event64.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
