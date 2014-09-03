@@ -84,30 +84,21 @@ namespace OgvPlayer
 			if (context != InitContext.Activate || DualityApp.ExecContext == DualityApp.ExecutionContext.Editor)
 				return;
 			
-			// Set everything to NULL. Yes, this actually matters later.
 			_theoraDecoder = IntPtr.Zero;
 			_videoStream = IntPtr.Zero;
 
-			// Initialize the decoder nice and early...
-			//IsDisposed = true;
 			FmodTheoraStream.Init();
 
-			if (!string.IsNullOrEmpty(_fileName))
+			if (!string.IsNullOrEmpty(_fileName)) //TODO: Check it exists too? AM
 				Initialize();
-
-
+			
 			_textureOne = new Texture(Width, Height, format: PixelInternalFormat.Luminance);
-			_textureTwo = new Texture(Width / 2, Height / 2, format: PixelInternalFormat.Luminance);
+			_textureTwo = new Texture(Width / 2, Height / 2, format: PixelInternalFormat.Luminance); 
 			_textureThree = new Texture(Width / 2, Height / 2, format: PixelInternalFormat.Luminance);
-
-
-			// FIXME: This is a part of the Duration hack!
-			Duration = TimeSpan.MaxValue;
 		}
 
 		public void OnShutdown(ShutdownContext context)
 		{
-
 			// Stop and unassign the decoder.
 			if (_theoraDecoder != IntPtr.Zero)
 			{
@@ -138,7 +129,6 @@ namespace OgvPlayer
 				_fileName,
 				150, // Arbitrarily 5 seconds in a 30fps movie.
 				//#if !VIDEOPLAYER_OPENGL
-				//                // Use the TheoraPlay software converter.
 				//                TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_RGBA
 				//#else
 				TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_IYUV
@@ -154,6 +144,14 @@ namespace OgvPlayer
 		//TODO: Move this later
 			
 			Task.Factory.StartNew(DecodeAudio);
+			
+			InitializeVideo();
+
+			IsDisposed = false;
+		}
+
+		private void InitializeVideo()
+		{
 			// Initialize the video stream pointer and get our first frame.
 			if (TheoraPlay.THEORAPLAY_hasVideoStream(_theoraDecoder) != 0)
 			{
@@ -166,36 +164,34 @@ namespace OgvPlayer
 				var frame = TheoraPlay.getVideoFrame(_videoStream);
 
 				// We get the FramesPerSecond from the first frame.
-				FramesPerSecond = (float)frame.fps;
-				Width = (int)frame.width;
-				Height = (int)frame.height;
+				FramesPerSecond = (float) frame.fps;
+				Width = (int) frame.width;
+				Height = (int) frame.height;
 			}
-
-			IsDisposed = false;
 		}
 
 		private void DecodeAudio()
 		{
-			const int BUFFER_SIZE = 4096 * 2;
+			const int bufferSize = 4096 * 2;
 
-			StreamData(BUFFER_SIZE);
-			StreamData(BUFFER_SIZE);
-			StreamData(BUFFER_SIZE);
-			StreamData(BUFFER_SIZE);
+			StreamData(bufferSize);
+			StreamData(bufferSize);
+			StreamData(bufferSize);
+			StreamData(bufferSize);
 			while (true)
 			{
-				StreamData(BUFFER_SIZE);
+				StreamData(bufferSize);
 			}
 		}
 
 		private void StreamData(int buffferSize)
 		{
-			TheoraPlay.THEORAPLAY_AudioPacket currentAudio;
+			
 			while (TheoraPlay.THEORAPLAY_availableAudio(_theoraDecoder) == 0)
 				;
 
 			var data = new List<float>();
-
+			TheoraPlay.THEORAPLAY_AudioPacket currentAudio;
 			while (data.Count < buffferSize && TheoraPlay.THEORAPLAY_availableAudio(_theoraDecoder) > 0)
 			{
 				var audioPtr = TheoraPlay.THEORAPLAY_getAudio(_theoraDecoder);
@@ -242,49 +238,22 @@ namespace OgvPlayer
 				return;
 
 			Texture.Bind(_textureOne);
-			GL.TexSubImage2D(
-				TextureTarget.Texture2D,
-				0,
-				0,
-				0,
-				Width,
-				Height,
-				PixelFormat.Luminance,
-				PixelType.UnsignedByte,
-				_currentVideo.pixels);
+			GL.TexSubImage2D(TextureTarget.Texture2D, 0,0,0,Width,Height,PixelFormat.Luminance,PixelType.UnsignedByte,_currentVideo.pixels);
 
 			Texture.Bind(_textureTwo);
-			GL.TexSubImage2D(
-			   TextureTarget.Texture2D,
-			   0,
-			   0,
-			   0,
-			   Width / 2,
-			   Height / 2,
-			   PixelFormat.Luminance,
-			   PixelType.UnsignedByte,
+			GL.TexSubImage2D(TextureTarget.Texture2D,0,0,0,Width / 2,Height / 2,PixelFormat.Luminance,PixelType.UnsignedByte,
 			   new IntPtr(
 				   _currentVideo.pixels.ToInt64() +
 				   (_currentVideo.width * _currentVideo.height)
-			   )
-		   );
+			   ));
 
 			Texture.Bind(_textureThree);
-			GL.TexSubImage2D(
-				TextureTarget.Texture2D,
-				0,
-				0,
-				0,
-				Width / 2,
-				Height / 2,
-				PixelFormat.Luminance,
-				PixelType.UnsignedByte,
+			GL.TexSubImage2D(TextureTarget.Texture2D,0,0,0,Width / 2,Height / 2,PixelFormat.Luminance,PixelType.UnsignedByte,
 				new IntPtr(
 					_currentVideo.pixels.ToInt64() +
 					(_currentVideo.width * _currentVideo.height) +
 					(_currentVideo.width / 2 * _currentVideo.height / 2)
-				)
-			);
+				));
 
 			var drawTechnique = (OgvDrawTechnique)Material.Res.Technique.Res;
 			drawTechnique.TextureOne = _textureOne;
