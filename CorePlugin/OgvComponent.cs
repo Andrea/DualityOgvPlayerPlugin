@@ -209,7 +209,43 @@ namespace OgvPlayer
         }
 
         public MediaState State { get; private set; }
-        public void Stop() { }
+
+        public void Stop()
+        {
+            /***/
+            if (IsDisposed)
+                return;
+
+            // Check the player state before attempting anything.
+            if (State == MediaState.Stopped)
+            {
+                return;
+            }
+
+            // Update the player state.
+            State = MediaState.Stopped;
+
+            // Wait for the player to end if it's still going.
+            /*
+             *   if (!audioDecoderThread.IsAlive)
+              {
+                  return;
+              }
+              Log.Editor.Write("Signaled Theora player to stop, waiting...");
+              timer.Stop();
+              timer.Reset();
+            
+              audioDecoderThread.Join();
+
+              if (_previousFrame != IntPtr.Zero)
+              {
+                  TheoraPlay.THEORAPLAY_freeVideo(_previousFrame);
+              }
+             */
+            Dispose();
+            Log.Editor.Write("Theora player stopped!");
+            /***/
+        }
         public void Play()
         {
             /**/

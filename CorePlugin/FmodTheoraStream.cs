@@ -55,12 +55,17 @@ namespace OgvPlayer
                 Log.Editor.WriteWarning("Problem initialising the audio part of the video player.{0}. Error: {1}",
                     result, exception.Message);
             }
+            result= _system.playSound(CHANNELINDEX.FREE, _sound, false, ref _channel);
             if (result != RESULT.OK)
             {
                 Log.Editor.WriteWarning("Problem initialising the audio part of the video player.{0}. No exceptions",
                     result);
             }
-            _system.playSound(CHANNELINDEX.FREE, _sound, false, ref _channel);
+        }
+
+        public static void Stop()
+        {
+            
         }
 
         public static void Stream(float[] data)
