@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OgcPlayerCorePlugin", "Core
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EditorPlugin", "EditorPlugin\EditorPlugin.csproj", "{78DBC94D-EE9D-4AC0-95ED-91A0AE2F6652}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "OgvPlayerCorePlugin.Tests", "OgvPlayerCorePlugin.Tests\OgvPlayerCorePlugin.Tests.fsproj", "{0B4B23F4-610F-46E5-A725-61E6A3ABA774}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{78DBC94D-EE9D-4AC0-95ED-91A0AE2F6652}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78DBC94D-EE9D-4AC0-95ED-91A0AE2F6652}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78DBC94D-EE9D-4AC0-95ED-91A0AE2F6652}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B4B23F4-610F-46E5-A725-61E6A3ABA774}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B4B23F4-610F-46E5-A725-61E6A3ABA774}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B4B23F4-610F-46E5-A725-61E6A3ABA774}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B4B23F4-610F-46E5-A725-61E6A3ABA774}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

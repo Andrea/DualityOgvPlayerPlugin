@@ -83,8 +83,7 @@ namespace OgvPlayer
 		{
 			if (context != InitContext.Activate || DualityApp.ExecContext == DualityApp.ExecutionContext.Editor)
 				return;
-
-
+			
 			// Set everything to NULL. Yes, this actually matters later.
 			_theoraDecoder = IntPtr.Zero;
 			_videoStream = IntPtr.Zero;
