@@ -159,7 +159,7 @@ namespace OgvPlayer
         {
             const int bufferSize = 4096 * 2;
 
-            while (true)
+            while (State == MediaState.Playing)
             {
                 while (TheoraPlay.THEORAPLAY_availableAudio(_theoraDecoder) == 0)
                     ;
@@ -175,14 +175,15 @@ namespace OgvPlayer
 
                 if (State == MediaState.Playing)
                     FmodTheoraStream.Stream(data.ToArray());
-
             }
         }
 
 
         public void OnUpdate()
         {
-            if (Time.GameTimer.TotalMilliseconds - _startTime < 1000)
+			if(State != MediaState.Playing)
+				return;
+            if (Time.GameTimer.TotalMilliseconds - _startTime < 800)
                 return;
 
             _elapsedFrameTime += Time.LastDelta * Time.TimeScale;
@@ -212,48 +213,23 @@ namespace OgvPlayer
 
         public void Stop()
         {
-            /***/
             if (IsDisposed)
                 return;
-
-            // Check the player state before attempting anything.
-            if (State == MediaState.Stopped)
+			if (State == MediaState.Stopped)
             {
                 return;
             }
-
-            // Update the player state.
             State = MediaState.Stopped;
-
-            // Wait for the player to end if it's still going.
-            /*
-             *   if (!audioDecoderThread.IsAlive)
-              {
-                  return;
-              }
-              Log.Editor.Write("Signaled Theora player to stop, waiting...");
-              timer.Stop();
-              timer.Reset();
-            
-              audioDecoderThread.Join();
-
-              if (_previousFrame != IntPtr.Zero)
-              {
-                  TheoraPlay.THEORAPLAY_freeVideo(_previousFrame);
-              }
-             */
+			FmodTheoraStream.Stop();
             Dispose();
             Log.Editor.Write("Theora player stopped!");
-            /***/
         }
+
         public void Play()
         {
-            /**/
-
             if (IsDisposed)
                 return;
-
-
+			
             // FIXME: This is a part of the Duration hack!
             Duration = TimeSpan.MaxValue;
 
@@ -263,70 +239,13 @@ namespace OgvPlayer
                 return;
             }
 
-            // In rare cases, the thread might still be going. Wait until it's done.
-            //maybe I dont need this because I m checking if playing
-//            if (audioDecoderThread != null && audioDecoderThread.IsAlive)
-//            {
-//                Stop();
-//            }
-            var audioTask = Task.Factory.StartNew(DecodeAudio);
+			Task.Factory.StartNew(DecodeAudio);
 
-            // Create new Thread instances in case we use this player multiple times.
-            //            audioDecoderThread = new Thread(new ThreadStart(this.DecodeAudio));
+	        if (IsDisposed)
+		        Initialize();
 
-            // Update the player state now, for the thread we're about to make.
-
-            // Start the video if it hasn't been yet.
-            if (IsDisposed)
-            {
-                Initialize();
-            }
-
-            State = MediaState.Playing;
+	        State = MediaState.Playing;
             _startTime = (float)Time.GameTimer.TotalMilliseconds;
-
-            // Grab the first bit of audio. We're trying to start the decoding ASAP.
-
-//            if (TheoraPlay.THEORAPLAY_hasAudioStream(_theoraDecoder) != 0)
-//            {
-//                audioDecoderThread.Start();
-//            }
-//            else
-//            {
-//                audioStarted = true; // Welp.
-//            }
-
-            // Grab the first bit of video, set up the texture.
-            /*
-            if (TheoraPlay.THEORAPLAY_hasVideoStream(Video.TheoraDecoder) != 0)
-            {
-                currentVideo = TheoraPlay.getVideoFrame(Video.VideoStream);
-                previousFrame = Video.VideoStream;
-                do
-                {
-                    // The decoder miiight not be ready yet.
-                    Video.VideoStream = TheoraPlay.THEORAPLAY_getVideo(Video.TheoraDecoder);
-                } while (Video.VideoStream == IntPtr.Zero);
-                nextVideo = TheoraPlay.getVideoFrame(Video.VideoStream);
-
-                Texture overlap = videoTexture;
-                videoTexture = new Texture(
-                    //                    Game.Instance.GraphicsDevice,
-                    //                    (int)currentVideo.width,
-                    //                    (int)currentVideo.height,
-                    //                    false,
-                    //                    SurfaceFormat.Color
-                    );
-                overlap.Dispose();
-#if VIDEOPLAYER_OPENGL
-                GL_setupTargets(
-                    (int)currentVideo.width,
-                    (int)currentVideo.height
-                );
-#endif
-            }
-            */
-            /**/
         }
 
         public override void Draw(IDrawDevice device)

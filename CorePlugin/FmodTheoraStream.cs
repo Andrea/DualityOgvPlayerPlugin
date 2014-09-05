@@ -65,7 +65,7 @@ namespace OgvPlayer
 
         public static void Stop()
         {
-            
+	        _channel.stop();
         }
 
         public static void Stream(float[] data)
