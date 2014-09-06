@@ -14,6 +14,7 @@ namespace OgvPlayer
         private static Channel _channel;
         private static CREATESOUNDEXINFO _createsoundexinfo;
         private static bool _soundcreated;
+        private static bool _isInitialized;
 
         private static MODE _mode = (MODE._2D | MODE.DEFAULT | MODE.OPENUSER | MODE.LOOP_NORMAL |
                                     MODE.HARDWARE);
@@ -61,15 +62,19 @@ namespace OgvPlayer
                 Log.Editor.WriteWarning("Problem initialising the audio part of the video player.{0}. No exceptions",
                     result);
             }
+	        _isInitialized = true;
         }
 
         public static void Stop()
         {
 	        _channel.stop();
+	        _isInitialized = false;
         }
 
         public static void Stream(float[] data)
         {
+			if(!_isInitialized)
+				Init();
             lock (_syncObject)
             {
                 _circularBuffer.Put(data);

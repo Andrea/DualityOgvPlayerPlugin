@@ -14,7 +14,7 @@ namespace GameRes
 		public static Duality.ContentRef<Duality.Resources.Texture> OgvTexture_02_Texture { get { return Duality.ContentProvider.RequestContent<Duality.Resources.Texture>(@"Data\OgvTexture-02.Texture.res"); }}
 		public static Duality.ContentRef<Duality.Resources.Texture> OgvTexture_03_Texture { get { return Duality.ContentProvider.RequestContent<Duality.Resources.Texture>(@"Data\OgvTexture-03.Texture.res"); }}
 		public static Duality.ContentRef<Duality.Resources.VertexShader> OgvVertexShader_VertexShader { get { return Duality.ContentProvider.RequestContent<Duality.Resources.VertexShader>(@"Data\OgvVertexShader.VertexShader.res"); }}
-		public static Duality.ContentRef<Duality.Resources.Scene> Scene__2__Scene { get { return Duality.ContentProvider.RequestContent<Duality.Resources.Scene>(@"Data\Scene (2).Scene.res"); }}
+		public static Duality.ContentRef<Duality.Resources.Scene> VideoScene_Scene { get { return Duality.ContentProvider.RequestContent<Duality.Resources.Scene>(@"Data\VideoScene.Scene.res"); }}
 		public static void LoadAll() {
 			OgvDrawTechnique_OgvDrawTechnique.MakeAvailable();
 			OgvFragmentShader_FragmentShader.MakeAvailable();
@@ -24,7 +24,7 @@ namespace GameRes
 			OgvTexture_02_Texture.MakeAvailable();
 			OgvTexture_03_Texture.MakeAvailable();
 			OgvVertexShader_VertexShader.MakeAvailable();
-			Scene__2__Scene.MakeAvailable();
+			VideoScene_Scene.MakeAvailable();
 		}
 	}
 

@@ -9,17 +9,18 @@ namespace OgvPlayer
     public class VideoPlayerComponent : Component, ICmpUpdatable
     {
         private OgvComponent _ogvComponent;
-        public void OnUpdate()
+
+	    public void OnUpdate()
         {
             _ogvComponent = _ogvComponent ?? Scene.Current.FindComponent<OgvComponent>();
-            if (DualityApp.Keyboard.KeyPressed(Key.P))
+            if (DualityApp.Keyboard.KeyReleased(Key.Q)&&_ogvComponent.State != MediaState.Playing)
             {
-
                 _ogvComponent.Play();
+				Log.Editor.Write("Play");
+	            
             }
-            if (DualityApp.Keyboard.KeyPressed(Key.O))
+            if (DualityApp.Keyboard.KeyReleased(Key.O))
             {
-
                 _ogvComponent.Stop();
             }
         }
