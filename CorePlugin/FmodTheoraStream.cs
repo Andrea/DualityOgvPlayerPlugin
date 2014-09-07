@@ -5,26 +5,26 @@ using OgvPlayer.Fmod;
 
 namespace OgvPlayer
 {
-    public class FmodTheoraStream
+	internal class FmodTheoraStream
     {
         private const int BufferSize = 1024768;
 
-        private static Fmod.System _system;
-        private static Sound _sound;
-        private static Channel _channel;
-        private static CREATESOUNDEXINFO _createsoundexinfo;
-        private static bool _soundcreated;
-        private static bool _isInitialized;
+        private  Fmod.System _system;
+        private  Sound _sound;
+        private  Channel _channel;
+        private  CREATESOUNDEXINFO _createsoundexinfo;
+        private  bool _soundcreated;
+        private  bool _isInitialized;
 
         private static MODE _mode = (MODE._2D | MODE.DEFAULT | MODE.OPENUSER | MODE.LOOP_NORMAL |
                                     MODE.HARDWARE);
 
-        private static CircularBuffer<float> _circularBuffer;
-        private static readonly object _syncObject = new object();
+        private  CircularBuffer<float> _circularBuffer;
+        private  readonly object _syncObject = new object();
 
-        public static void Initialize()
+        public  void Initialize()
         {
-            uint version = 0;
+			uint version = 0;
             var result = RESULT.ERR_UPDATE;
             const uint channels = 2;
             const uint frequency = 48000;
@@ -60,7 +60,7 @@ namespace OgvPlayer
 	        _isInitialized = true;
         }
 
-	    private static RESULT CreateSound(RESULT result)
+	    private  RESULT CreateSound(RESULT result)
 	    {
 		    if (!_soundcreated)
 		    {
@@ -71,7 +71,7 @@ namespace OgvPlayer
 		    return result;
 	    }
 
-	    public static void Stop()
+	    public  void Stop()
         {
 	        _channel.stop();
 	        _isInitialized = false;
@@ -79,7 +79,7 @@ namespace OgvPlayer
 			_circularBuffer.Clear();
         }
 
-        public static void Stream(float[] data)
+        public  void Stream(float[] data)
         {
 			if(!_isInitialized)
 				Initialize();
@@ -89,7 +89,7 @@ namespace OgvPlayer
             }
         }
 
-        private static RESULT PcmReadCallback(IntPtr sounDraw, IntPtr data, uint datalen)
+        private  RESULT PcmReadCallback(IntPtr sounDraw, IntPtr data, uint datalen)
         {
             unsafe
             {

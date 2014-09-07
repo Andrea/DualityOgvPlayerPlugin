@@ -22,6 +22,8 @@ namespace OgvPlayer
             if (DualityApp.Keyboard.KeyReleased(Key.O))
             {
                 _ogvComponent.Stop();
+				Log.Editor.Write("Stopped!");
+
             }
         }
     }

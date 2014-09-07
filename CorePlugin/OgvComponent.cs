@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Duality;
 using Duality.Components;
 using Duality.Drawing;
+using Duality.Editor;
 using Duality.Resources;
 using OpenTK.Graphics.OpenGL;
 
@@ -31,6 +32,9 @@ namespace OgvPlayer
 		private TheoraVideo _theoraVideo;
 
 		[NonSerialized]
+		private FmodTheoraStream _fmodTheoraStream;
+
+		[NonSerialized]
 		private CancellationTokenSource _cancellationTokenSource;
 
 		public string FileName
@@ -45,13 +49,15 @@ namespace OgvPlayer
 				_fileName = value;
 			}
 		}
-
+		[EditorHintFlags(MemberFlags.Invisible)]
 		public MediaState State { get; private set; }
-
+		
+		[EditorHintFlags(MemberFlags.Invisible)]
 		public bool IsDisposed { get; set; }
 
 		public ContentRef<Material> Material { get; set; }
 
+		[EditorHintFlags(MemberFlags.Invisible)]
 
 		public override float BoundRadius
 		{
@@ -63,14 +69,11 @@ namespace OgvPlayer
 			if (context != InitContext.Activate || DualityApp.ExecContext == DualityApp.ExecutionContext.Editor)
 				return;
 
-			FmodTheoraStream.Initialize();
-
 			if (!string.IsNullOrEmpty(_fileName)) //TODO: Check it exists too? AM
 			{
-				_theoraVideo = new TheoraVideo();
 				Initialize();
 			}
-
+			
 			_textureOne = new Texture(_theoraVideo.Width, _theoraVideo.Height, format: PixelInternalFormat.Luminance);
 			_textureTwo = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2, format: PixelInternalFormat.Luminance);
 			_textureThree = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2, format: PixelInternalFormat.Luminance);
@@ -78,7 +81,9 @@ namespace OgvPlayer
 
 		public void OnShutdown(ShutdownContext context)
 		{
-			if(_theoraVideo != null) _theoraVideo.Terminate();
+			if(_theoraVideo != null) 
+				_theoraVideo.Terminate();
+
 			IsDisposed = true;
 			_cancellationTokenSource = null;
 			_startTime = (float)Time.GameTimer.TotalMilliseconds;
@@ -90,7 +95,10 @@ namespace OgvPlayer
 			{
 				_theoraVideo.Terminate();
 			}
+			_fmodTheoraStream = new FmodTheoraStream();
+			_fmodTheoraStream.Initialize();
 
+			_theoraVideo = new TheoraVideo();
 			_theoraVideo.InitializeVideo(_fileName);
 
 			IsDisposed = false;
@@ -118,7 +126,7 @@ namespace OgvPlayer
 				}
 
 				if (State == MediaState.Playing)
-					FmodTheoraStream.Stream(data.ToArray());
+					_fmodTheoraStream.Stream(data.ToArray());
 			}
 		}
 
@@ -142,13 +150,10 @@ namespace OgvPlayer
 			if (State == MediaState.Stopped)
 				return;
 			_cancellationTokenSource.Cancel();
-			FmodTheoraStream.Stop();
+			_fmodTheoraStream.Stop();
 			_theoraVideo.Terminate();
 			State = MediaState.Stopped;
-
 			IsDisposed = false;
-
-			Log.Editor.Write("Theora player stopped!");
 		}
 
 		public void Play()
@@ -167,7 +172,6 @@ namespace OgvPlayer
 
 			if (_theoraVideo.Disposed)
 				Initialize();
-
 
 			_startTime = (float)Time.GameTimer.TotalMilliseconds;
 		}

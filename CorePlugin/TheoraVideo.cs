@@ -3,39 +3,39 @@ using System.Threading;
 
 namespace OgvPlayer
 {
-	public class TheoraVideo
+	internal class TheoraVideo
 	{
-		private  IntPtr _theoraDecoder;
-		private  IntPtr _videoStream;
-		private  IntPtr _previousFrame;
+		private IntPtr _theoraDecoder;
+		private IntPtr _videoStream;
+		private IntPtr _previousFrame;
 
-		private  TheoraPlay.THEORAPLAY_VideoFrame _nextVideo;
-		private  TheoraPlay.THEORAPLAY_VideoFrame _currentVideo;
-		private  bool _disposed;
+		private TheoraPlay.THEORAPLAY_VideoFrame _nextVideo;
+		private TheoraPlay.THEORAPLAY_VideoFrame _currentVideo;
+		private bool _disposed;
 
-		public  int Width { get; private set; }
+		public int Width { get; private set; }
 
-		public  int Height { get; private set; }
+		public int Height { get; private set; }
 
-		public  float FramesPerSecond { get; private set; }
+		public float FramesPerSecond { get; private set; }
 
 		public uint ElapsedMilliseconds
 		{
 			get { return _currentVideo.playms; }
-			
+
 		}
-		
-		public  IntPtr TheoraDecoder
+
+		public IntPtr TheoraDecoder
 		{
 			get { return _theoraDecoder; }
 		}
 
-		public  bool Disposed
+		public bool Disposed
 		{
 			get { return _disposed; }
 		}
 
-		public  void InitializeVideo(string fileName)
+		public void InitializeVideo(string fileName)
 		{
 			// Initialize the decoder.
 			_theoraDecoder = TheoraPlay.THEORAPLAY_startDecodeFile(
@@ -72,7 +72,7 @@ namespace OgvPlayer
 			_disposed = false;
 		}
 
-		public  void Terminate()
+		public void Terminate()
 		{
 			// Stop and unassign the decoder.
 			if (TheoraDecoder != IntPtr.Zero)
@@ -93,13 +93,12 @@ namespace OgvPlayer
 			_previousFrame = IntPtr.Zero;
 			_videoStream = IntPtr.Zero;
 			_disposed = true;
-			
+
 		}
-		
-		public  void UpdateVideo(float elapsedFrameTime)
+
+		public void UpdateVideo(float elapsedFrameTime)
 		{
-			var missedFrame = false;
-			while (_currentVideo.playms <= elapsedFrameTime && !missedFrame)
+			while (_currentVideo.playms <= elapsedFrameTime)
 			{
 				_currentVideo = _nextVideo;
 				var nextFrame = TheoraPlay.THEORAPLAY_getVideo(TheoraDecoder);
@@ -110,29 +109,30 @@ namespace OgvPlayer
 					_previousFrame = _videoStream;
 					_videoStream = nextFrame;
 					_nextVideo = TheoraPlay.getVideoFrame(_videoStream);
-					missedFrame = false;
-				}
-				else
-				{
-					missedFrame = true;
+
 				}
 			}
 		}
 
 		/*
+		 Theora divides the pixel array up into three separate color planes, one for each of the Y 0 , Cb, and Cr components of the pixel. The Y
+		0 plane is also called the luma plane, and the Cb and Cr planes are also called the chroma planes. 
 		In some pixel formats, the chroma planes are subsampled by a factor of two in one or both directions. This means that the width or height of the chroma
-		planes may be half that of the total frame width and height. The luma plane is never subsampled.*/
+		planes may be half that of the total frame width and height. The luma plane is never subsampled.
+		 from http://www.theora.org/doc/Theora.pdf chapter 2
+		 */
+
 		public IntPtr GetYColorPlane()
 		{
 			return _currentVideo.pixels;
 		}
 		public IntPtr GetCbColorPlane()
 		{
-			return new IntPtr(_currentVideo.pixels.ToInt64() + (_currentVideo.width*_currentVideo.height));
+			return new IntPtr(_currentVideo.pixels.ToInt64() + (_currentVideo.width * _currentVideo.height));
 		}
 		public IntPtr GetCrColorPlane()
 		{
-			return new IntPtr(_currentVideo.pixels.ToInt64() + (_currentVideo.width*_currentVideo.height) + (_currentVideo.width/2*_currentVideo.height/2));
+			return new IntPtr(_currentVideo.pixels.ToInt64() + (_currentVideo.width * _currentVideo.height) + (_currentVideo.width / 2 * _currentVideo.height / 2));
 		}
 
 	}
