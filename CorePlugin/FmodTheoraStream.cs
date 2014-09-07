@@ -22,7 +22,7 @@ namespace OgvPlayer
         private static CircularBuffer<float> _circularBuffer;
         private static readonly object _syncObject = new object();
 
-        public static void Init()
+        public static void Initialize()
         {
             uint version = 0;
             var result = RESULT.ERR_UPDATE;
@@ -44,12 +44,7 @@ namespace OgvPlayer
                 _createsoundexinfo.pcmreadcallback += PcmReadCallback;
                 _createsoundexinfo.dlsname = null;
 
-                if (!_soundcreated)
-                {
-                    result = _system.createSound((string) null, (_mode | MODE.CREATESTREAM), ref _createsoundexinfo,
-                        ref _sound);
-                    _soundcreated = true;
-                }
+                result = CreateSound(result);
             }
             catch (Exception exception)
             {
@@ -65,16 +60,29 @@ namespace OgvPlayer
 	        _isInitialized = true;
         }
 
-        public static void Stop()
+	    private static RESULT CreateSound(RESULT result)
+	    {
+		    if (!_soundcreated)
+		    {
+			    result = _system.createSound((string) null, (_mode | MODE.CREATESTREAM), ref _createsoundexinfo,
+				    ref _sound);
+			    _soundcreated = true;
+		    }
+		    return result;
+	    }
+
+	    public static void Stop()
         {
 	        _channel.stop();
 	        _isInitialized = false;
+		    _soundcreated = false;
+			_circularBuffer.Clear();
         }
 
         public static void Stream(float[] data)
         {
 			if(!_isInitialized)
-				Init();
+				Initialize();
             lock (_syncObject)
             {
                 _circularBuffer.Put(data);

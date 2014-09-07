@@ -80,7 +80,7 @@ namespace OgvPlayer
 			_theoraDecoder = IntPtr.Zero;
 			_videoStream = IntPtr.Zero;
 
-			FmodTheoraStream.Init();
+			FmodTheoraStream.Initialize();
 
 			if (!string.IsNullOrEmpty(_fileName)) //TODO: Check it exists too? AM
 				Initialize();
@@ -112,7 +112,8 @@ namespace OgvPlayer
 				TheoraPlay.THEORAPLAY_freeVideo(_videoStream);
 				_videoStream = IntPtr.Zero;
 			}
-
+			_currentVideo = new TheoraPlay.THEORAPLAY_VideoFrame();
+			_nextVideo = new TheoraPlay.THEORAPLAY_VideoFrame();
 			_videoDisposed = true;
 			_startTime = (float)Time.GameTimer.TotalMilliseconds;
 		}
