@@ -8,6 +8,7 @@ namespace GameRes
 	public static class Data {
 		public static Duality.ContentRef<OgvPlayer.OgvDrawTechnique> OgvDrawTechnique_OgvDrawTechnique { get { return Duality.ContentProvider.RequestContent<OgvPlayer.OgvDrawTechnique>(@"Data\OgvDrawTechnique.OgvDrawTechnique.res"); }}
 		public static Duality.ContentRef<Duality.Resources.FragmentShader> OgvFragmentShader_FragmentShader { get { return Duality.ContentProvider.RequestContent<Duality.Resources.FragmentShader>(@"Data\OgvFragmentShader.FragmentShader.res"); }}
+		public static Duality.ContentRef<OgvPlayer.OgvFragmentShader> OgvFragmentShader_OgvFragmentShader { get { return Duality.ContentProvider.RequestContent<OgvPlayer.OgvFragmentShader>(@"Data\OgvFragmentShader.OgvFragmentShader.res"); }}
 		public static Duality.ContentRef<Duality.Resources.Material> OgvMaterial_Material { get { return Duality.ContentProvider.RequestContent<Duality.Resources.Material>(@"Data\OgvMaterial.Material.res"); }}
 		public static Duality.ContentRef<Duality.Resources.ShaderProgram> OgvShader_ShaderProgram { get { return Duality.ContentProvider.RequestContent<Duality.Resources.ShaderProgram>(@"Data\OgvShader.ShaderProgram.res"); }}
 		public static Duality.ContentRef<Duality.Resources.Texture> OgvTexture_01_Texture { get { return Duality.ContentProvider.RequestContent<Duality.Resources.Texture>(@"Data\OgvTexture-01.Texture.res"); }}
@@ -18,6 +19,7 @@ namespace GameRes
 		public static void LoadAll() {
 			OgvDrawTechnique_OgvDrawTechnique.MakeAvailable();
 			OgvFragmentShader_FragmentShader.MakeAvailable();
+			OgvFragmentShader_OgvFragmentShader.MakeAvailable();
 			OgvMaterial_Material.MakeAvailable();
 			OgvShader_ShaderProgram.MakeAvailable();
 			OgvTexture_01_Texture.MakeAvailable();

@@ -1,5 +1,6 @@
 using System;
 using Duality.Drawing;
+using Duality.Editor;
 using Duality.Resources;
 
 namespace OgvPlayer
@@ -7,9 +8,19 @@ namespace OgvPlayer
 	[Serializable]
 	public class OgvDrawTechnique : DrawTechnique
 	{
+		[EditorHintFlags(MemberFlags.Invisible)]
 		public Texture TextureOne { get; set; }
+		
+		[EditorHintFlags(MemberFlags.Invisible)]
 		public Texture TextureTwo { get; set; }
+
+		[EditorHintFlags(MemberFlags.Invisible)]
 		public Texture TextureThree { get; set; }
+
+		public OgvDrawTechnique()
+		{
+			Blending = BlendMode.Alpha;
+		}
 
 		public override bool NeedsPreparation
 		{

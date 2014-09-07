@@ -69,11 +69,11 @@ namespace OgvPlayer
 			if (context != InitContext.Activate || DualityApp.ExecContext == DualityApp.ExecutionContext.Editor)
 				return;
 
-			if (!string.IsNullOrEmpty(_fileName)) //TODO: Check it exists too? AM
-			{
-				Initialize();
-			}
-			
+			if (string.IsNullOrEmpty(_fileName))
+				return;
+
+			Initialize();
+
 			_textureOne = new Texture(_theoraVideo.Width, _theoraVideo.Height, format: PixelInternalFormat.Luminance);
 			_textureTwo = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2, format: PixelInternalFormat.Luminance);
 			_textureThree = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2, format: PixelInternalFormat.Luminance);
