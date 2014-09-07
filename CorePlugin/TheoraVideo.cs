@@ -22,7 +22,6 @@ namespace OgvPlayer
 		public uint ElapsedMilliseconds
 		{
 			get { return _currentVideo.playms; }
-
 		}
 
 		public IntPtr TheoraDecoder
@@ -49,16 +48,16 @@ namespace OgvPlayer
 				);
 
 			// Wait until the decoder is ready.
-			while (TheoraPlay.THEORAPLAY_isInitialized(TheoraDecoder) == 0)
+			while (TheoraPlay.THEORAPLAY_isInitialized(_theoraDecoder) == 0)
 			{
 				Thread.Sleep(10);
 			}
 			// Initialize the video stream pointer and get our first frame.
-			if (TheoraPlay.THEORAPLAY_hasVideoStream(TheoraDecoder) != 0)
+			if (TheoraPlay.THEORAPLAY_hasVideoStream(_theoraDecoder) != 0)
 			{
 				while (_videoStream == IntPtr.Zero)
 				{
-					_videoStream = TheoraPlay.THEORAPLAY_getVideo(TheoraDecoder);
+					_videoStream = TheoraPlay.THEORAPLAY_getVideo(_theoraDecoder);
 					Thread.Sleep(10);
 				}
 
@@ -75,9 +74,9 @@ namespace OgvPlayer
 		public void Terminate()
 		{
 			// Stop and unassign the decoder.
-			if (TheoraDecoder != IntPtr.Zero)
+			if (_theoraDecoder != IntPtr.Zero)
 			{
-				TheoraPlay.THEORAPLAY_stopDecode(TheoraDecoder);
+				TheoraPlay.THEORAPLAY_stopDecode(_theoraDecoder);
 				_theoraDecoder = IntPtr.Zero;
 			}
 
@@ -93,15 +92,16 @@ namespace OgvPlayer
 			_previousFrame = IntPtr.Zero;
 			_videoStream = IntPtr.Zero;
 			_disposed = true;
-
+			
 		}
 
 		public void UpdateVideo(float elapsedFrameTime)
 		{
-			while (_currentVideo.playms <= elapsedFrameTime)
+			while (_currentVideo.playms <= elapsedFrameTime && TheoraPlay.THEORAPLAY_availableVideo(_theoraDecoder)!=0)
 			{
 				_currentVideo = _nextVideo;
-				var nextFrame = TheoraPlay.THEORAPLAY_getVideo(TheoraDecoder);
+				
+				var nextFrame = TheoraPlay.THEORAPLAY_getVideo(_theoraDecoder);
 
 				if (nextFrame != IntPtr.Zero)
 				{

@@ -136,7 +136,7 @@ namespace OgvPlayer
 				return;
 			if (Time.GameTimer.TotalMilliseconds - _startTime < 800)
 				return;
-
+			
 			_elapsedFrameTime += Time.LastDelta * Time.TimeScale;
 
 			_theoraVideo.UpdateVideo(_elapsedFrameTime);

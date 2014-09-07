@@ -17,9 +17,7 @@ namespace OgvPlayer
 
         private static MODE _mode = (MODE._2D | MODE.DEFAULT | MODE.OPENUSER | MODE.LOOP_NORMAL |
                                     MODE.HARDWARE);
-
-        
-        private ConcurrentQueue<float> _dataBuffer;
+		private ConcurrentQueue<float> _dataBuffer;
         private  readonly object _syncObject = new object();
 
         public  void Initialize()
