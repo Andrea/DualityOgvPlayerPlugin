@@ -53,7 +53,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CircularBuffer.cs" />
     <Compile Include="FmodTheoraStream.cs" />
     <Compile Include="Fmod\fmod.cs" />
     <Compile Include="Fmod\fmod_dsp.cs" />

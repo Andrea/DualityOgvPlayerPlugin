@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using Duality;
 using OgvPlayer.Fmod;
@@ -7,8 +8,6 @@ namespace OgvPlayer
 {
 	internal class FmodTheoraStream
     {
-        private const int BufferSize = 1024768;
-
         private  Fmod.System _system;
         private  Sound _sound;
         private  Channel _channel;
@@ -19,7 +18,8 @@ namespace OgvPlayer
         private static MODE _mode = (MODE._2D | MODE.DEFAULT | MODE.OPENUSER | MODE.LOOP_NORMAL |
                                     MODE.HARDWARE);
 
-        private  CircularBuffer<float> _circularBuffer;
+        
+        private ConcurrentQueue<float> _dataBuffer;
         private  readonly object _syncObject = new object();
 
         public  void Initialize()
@@ -28,7 +28,8 @@ namespace OgvPlayer
             var result = RESULT.ERR_UPDATE;
             const uint channels = 2;
             const uint frequency = 48000;
-            _circularBuffer = new CircularBuffer<float>(BufferSize, true);
+            
+			_dataBuffer = new ConcurrentQueue<float>();
             try
             {
                 result = Factory.System_Create(ref _system);
@@ -76,16 +77,22 @@ namespace OgvPlayer
 	        _channel.stop();
 	        _isInitialized = false;
 		    _soundcreated = false;
-			_circularBuffer.Clear();
+			
+			_dataBuffer = new ConcurrentQueue<float>();
+			Dispose(true);
         }
 
         public  void Stream(float[] data)
         {
 			if(!_isInitialized)
 				Initialize();
+	        
             lock (_syncObject)
             {
-                _circularBuffer.Put(data);
+				foreach (var f in data)
+				{
+					_dataBuffer.Enqueue(f);
+				}
             }
         }
 
@@ -94,23 +101,38 @@ namespace OgvPlayer
             unsafe
             {
                 uint count; //Does this need to be outside the lock? AM
-
                 lock (_syncObject)
                 {
-                    if (_circularBuffer.Size == 0)
+                    if (_dataBuffer.Count == 0)
+
                         return RESULT.OK;
 
                     var stereo32BitBuffer = (float*) data.ToPointer();
                     for (count = 0; count < (datalen >> 2); count++) //WTF does this do AM
                     {
-                        if (_circularBuffer.Size == 0)
+                        if (_dataBuffer.Count == 0)
                             break;
-
-                        *stereo32BitBuffer++ = _circularBuffer.Get();
+	                    float result;
+						if(_dataBuffer.TryDequeue(out result))
+							*stereo32BitBuffer++ = result;
                     }
                 }
             }
             return RESULT.OK;
         }
+
+		protected  void Dispose(bool disposing)
+		{
+			if (!disposing) 
+				return;
+			if (_sound != null)
+				_sound.release();
+			if (_system != null)
+			{
+				_system.close();
+				_system.release();
+			}
+		}
+
     }
 }
