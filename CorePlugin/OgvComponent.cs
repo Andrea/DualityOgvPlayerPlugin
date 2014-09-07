@@ -14,22 +14,9 @@ namespace OgvPlayer
 	public class OgvComponent : Renderer, ICmpInitializable, ICmpUpdatable
 	{
 		private string _fileName;
-		[NonSerialized]
-		private IntPtr _theoraDecoder;
-		[NonSerialized]
-		private IntPtr _videoStream;
-		[NonSerialized]
-		private IntPtr _previousFrame;
 
-		[NonSerialized]
-		private TheoraPlay.THEORAPLAY_VideoFrame _nextVideo;
-		[NonSerialized]
-		private TheoraPlay.THEORAPLAY_VideoFrame _currentVideo;
-		[NonSerialized]
-		private float _elapsedFrameTime;
 		[NonSerialized]
 		private double _startTime;
-
 		[NonSerialized]
 		private Texture _textureOne;
 		[NonSerialized]
@@ -38,13 +25,13 @@ namespace OgvPlayer
 		private Texture _textureThree;
 
 		[NonSerialized]
-		private bool _videoDisposed;
+		private float _elapsedFrameTime;
+		
+		[NonSerialized]
+		private TheoraVideo _theoraVideo;
+
 		[NonSerialized]
 		private CancellationTokenSource _cancellationTokenSource;
-
-		public int Width { get; private set; }
-
-		public int Height { get; private set; }
 
 		public string FileName
 		{
@@ -65,7 +52,6 @@ namespace OgvPlayer
 
 		public ContentRef<Material> Material { get; set; }
 
-		public float FramesPerSecond { get; private set; }
 
 		public override float BoundRadius
 		{
@@ -77,98 +63,40 @@ namespace OgvPlayer
 			if (context != InitContext.Activate || DualityApp.ExecContext == DualityApp.ExecutionContext.Editor)
 				return;
 
-			_theoraDecoder = IntPtr.Zero;
-			_videoStream = IntPtr.Zero;
-
 			FmodTheoraStream.Initialize();
 
 			if (!string.IsNullOrEmpty(_fileName)) //TODO: Check it exists too? AM
+			{
+				_theoraVideo = new TheoraVideo();
 				Initialize();
+			}
 
-			_textureOne = new Texture(Width, Height, format: PixelInternalFormat.Luminance);
-			_textureTwo = new Texture(Width / 2, Height / 2, format: PixelInternalFormat.Luminance);
-			_textureThree = new Texture(Width / 2, Height / 2, format: PixelInternalFormat.Luminance);
+			_textureOne = new Texture(_theoraVideo.Width, _theoraVideo.Height, format: PixelInternalFormat.Luminance);
+			_textureTwo = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2, format: PixelInternalFormat.Luminance);
+			_textureThree = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2, format: PixelInternalFormat.Luminance);
 		}
 
 		public void OnShutdown(ShutdownContext context)
 		{
-			Terminate();
+			if(_theoraVideo != null) _theoraVideo.Terminate();
 			IsDisposed = true;
 			_cancellationTokenSource = null;
+			_startTime = (float)Time.GameTimer.TotalMilliseconds;
 		}
 
 		internal void Initialize()
 		{
 			if (!IsDisposed)
 			{
-				Terminate();
+				_theoraVideo.Terminate();
 			}
 
-			// Initialize the decoder.
-			_theoraDecoder = TheoraPlay.THEORAPLAY_startDecodeFile(
-				_fileName,
-				150, // Arbitrarily 5 seconds in a 30fps movie.
-				//#if !VIDEOPLAYER_OPENGL
-				//                TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_RGBA
-				//#else
-				TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_IYUV
-				//#endif
-				);
+			_theoraVideo.InitializeVideo(_fileName);
 
-			// Wait until the decoder is ready.
-			while (TheoraPlay.THEORAPLAY_isInitialized(_theoraDecoder) == 0)
-			{
-				Thread.Sleep(10);
-			}
-
-			InitializeVideo();
-			_videoDisposed = false;
 			IsDisposed = false;
 		}
 
-		private void Terminate()
-		{
-			// Stop and unassign the decoder.
-			if (_theoraDecoder != IntPtr.Zero)
-			{
-				TheoraPlay.THEORAPLAY_stopDecode(_theoraDecoder);
-				_theoraDecoder = IntPtr.Zero;
-			}
 
-			// Free and unassign the video stream.
-			if (_videoStream != IntPtr.Zero)
-			{
-				TheoraPlay.THEORAPLAY_freeVideo(_videoStream);
-				_videoStream = IntPtr.Zero;
-			}
-			_currentVideo = new TheoraPlay.THEORAPLAY_VideoFrame();
-			_nextVideo = new TheoraPlay.THEORAPLAY_VideoFrame();
-			TheoraPlay.THEORAPLAY_freeVideo(_previousFrame);
-			_previousFrame = IntPtr.Zero;
-			_videoStream = IntPtr.Zero;
-			_videoDisposed = true;
-			_startTime = (float)Time.GameTimer.TotalMilliseconds;
-		}
-
-		private void InitializeVideo()
-		{
-			// Initialize the video stream pointer and get our first frame.
-			if (TheoraPlay.THEORAPLAY_hasVideoStream(_theoraDecoder) != 0)
-			{
-				while (_videoStream == IntPtr.Zero)
-				{
-					_videoStream = TheoraPlay.THEORAPLAY_getVideo(_theoraDecoder);
-					Thread.Sleep(10);
-				}
-
-				var frame = TheoraPlay.getVideoFrame(_videoStream);
-
-				// We get the FramesPerSecond from the first frame.
-				FramesPerSecond = (float)frame.fps;
-				Width = (int)frame.width;
-				Height = (int)frame.height;
-			}
-		}
 
 		private void DecodeAudio()
 		{
@@ -176,14 +104,14 @@ namespace OgvPlayer
 
 			while (State != MediaState.Stopped)
 			{
-				while (State != MediaState.Stopped && TheoraPlay.THEORAPLAY_availableAudio(_theoraDecoder) == 0)
+				while (State != MediaState.Stopped && TheoraPlay.THEORAPLAY_availableAudio(_theoraVideo.TheoraDecoder) == 0)
 					continue;
 
 				var data = new List<float>();
 				TheoraPlay.THEORAPLAY_AudioPacket currentAudio;
-				while (data.Count < bufferSize && TheoraPlay.THEORAPLAY_availableAudio(_theoraDecoder) > 0)
+				while (data.Count < bufferSize && TheoraPlay.THEORAPLAY_availableAudio(_theoraVideo.TheoraDecoder) > 0)
 				{
-					var audioPtr = TheoraPlay.THEORAPLAY_getAudio(_theoraDecoder);
+					var audioPtr = TheoraPlay.THEORAPLAY_getAudio(_theoraVideo.TheoraDecoder);
 					currentAudio = TheoraPlay.getAudioPacket(audioPtr);
 					data.AddRange(TheoraPlay.getSamples(currentAudio.samples, currentAudio.frames * currentAudio.channels));
 					TheoraPlay.THEORAPLAY_freeAudio(audioPtr);
@@ -194,7 +122,6 @@ namespace OgvPlayer
 			}
 		}
 
-
 		public void OnUpdate()
 		{
 			if (State != MediaState.Playing)
@@ -204,31 +131,9 @@ namespace OgvPlayer
 
 			_elapsedFrameTime += Time.LastDelta * Time.TimeScale;
 
-			UpdateVideo();
+			_theoraVideo.UpdateVideo(_elapsedFrameTime);
 		}
 
-		private void UpdateVideo()
-		{
-			bool missedFrame = false;
-			while (_currentVideo.playms <= _elapsedFrameTime && !missedFrame)
-			{
-				_currentVideo = _nextVideo;
-				var nextFrame = TheoraPlay.THEORAPLAY_getVideo(_theoraDecoder);
-
-				if (nextFrame != IntPtr.Zero)
-				{
-					TheoraPlay.THEORAPLAY_freeVideo(_previousFrame);
-					_previousFrame = _videoStream;
-					_videoStream = nextFrame;
-					_nextVideo = TheoraPlay.getVideoFrame(_videoStream);
-					missedFrame = false;
-				}
-				else
-				{
-					missedFrame = true;
-				}
-			}
-		}
 
 		public void Stop()
 		{
@@ -238,11 +143,11 @@ namespace OgvPlayer
 				return;
 			_cancellationTokenSource.Cancel();
 			FmodTheoraStream.Stop();
-			Terminate();
+			_theoraVideo.Terminate();
 			State = MediaState.Stopped;
 
 			IsDisposed = false;
-			
+
 			Log.Editor.Write("Theora player stopped!");
 		}
 
@@ -260,38 +165,32 @@ namespace OgvPlayer
 				Task.Factory.StartNew(DecodeAudio, _cancellationTokenSource.Token);
 			}
 
-			if (_videoDisposed)
+			if (_theoraVideo.Disposed)
 				Initialize();
 
-			
+
 			_startTime = (float)Time.GameTimer.TotalMilliseconds;
 		}
 
 		public override void Draw(IDrawDevice device)
 		{
-			if (_currentVideo.playms == 0)
-				return;
-
 			if (State != MediaState.Playing)
 				return;
 
+			if (_theoraVideo.ElapsedMilliseconds == 0)
+				return;
+			
 			Texture.Bind(_textureOne);
-			GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, Width, Height, PixelFormat.Luminance, PixelType.UnsignedByte, _currentVideo.pixels);
+			GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, _theoraVideo.Width, _theoraVideo.Height, PixelFormat.Luminance, PixelType.UnsignedByte,
+				_theoraVideo.GetYColorPlane());
 
 			Texture.Bind(_textureTwo);
-			GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, Width / 2, Height / 2, PixelFormat.Luminance, PixelType.UnsignedByte,
-			   new IntPtr(
-				   _currentVideo.pixels.ToInt64() +
-				   (_currentVideo.width * _currentVideo.height)
-			   ));
+			GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, _theoraVideo.Width / 2, _theoraVideo.Height / 2, PixelFormat.Luminance, PixelType.UnsignedByte,
+				_theoraVideo.GetCbColorPlane());
 
 			Texture.Bind(_textureThree);
-			GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, Width / 2, Height / 2, PixelFormat.Luminance, PixelType.UnsignedByte,
-				new IntPtr(
-					_currentVideo.pixels.ToInt64() +
-					(_currentVideo.width * _currentVideo.height) +
-					(_currentVideo.width / 2 * _currentVideo.height / 2)
-				));
+			GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, _theoraVideo.Width / 2, _theoraVideo.Height / 2, PixelFormat.Luminance, PixelType.UnsignedByte,
+				_theoraVideo.GetCrColorPlane());
 
 			var drawTechnique = (OgvDrawTechnique)Material.Res.Technique.Res;
 			drawTechnique.TextureOne = _textureOne;
@@ -305,5 +204,6 @@ namespace OgvPlayer
 				new VertexC1P3T2(targetRect.MaximumX, targetRect.MaximumY, 0.0f, 1, 1),
 				new VertexC1P3T2(targetRect.MinimumX, targetRect.MaximumY, 0.0f, 0.0f, 1));
 		}
+
 	}
 }
