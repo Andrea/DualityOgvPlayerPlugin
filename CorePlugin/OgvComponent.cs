@@ -39,7 +39,7 @@ namespace OgvPlayer
 
 		[NonSerialized]
 		private bool _videoDisposed;
-
+		[NonSerialized]
 		private CancellationTokenSource _cancellationTokenSource;
 
 		public int Width { get; private set; }
@@ -97,6 +97,35 @@ namespace OgvPlayer
 			_cancellationTokenSource = null;
 		}
 
+		internal void Initialize()
+		{
+			if (!IsDisposed)
+			{
+				Terminate();
+			}
+
+			// Initialize the decoder.
+			_theoraDecoder = TheoraPlay.THEORAPLAY_startDecodeFile(
+				_fileName,
+				150, // Arbitrarily 5 seconds in a 30fps movie.
+				//#if !VIDEOPLAYER_OPENGL
+				//                TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_RGBA
+				//#else
+				TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_IYUV
+				//#endif
+				);
+
+			// Wait until the decoder is ready.
+			while (TheoraPlay.THEORAPLAY_isInitialized(_theoraDecoder) == 0)
+			{
+				Thread.Sleep(10);
+			}
+
+			InitializeVideo();
+			_videoDisposed = false;
+			IsDisposed = false;
+		}
+
 		private void Terminate()
 		{
 			// Stop and unassign the decoder.
@@ -114,37 +143,11 @@ namespace OgvPlayer
 			}
 			_currentVideo = new TheoraPlay.THEORAPLAY_VideoFrame();
 			_nextVideo = new TheoraPlay.THEORAPLAY_VideoFrame();
+			TheoraPlay.THEORAPLAY_freeVideo(_previousFrame);
+			_previousFrame = IntPtr.Zero;
+			_videoStream = IntPtr.Zero;
 			_videoDisposed = true;
 			_startTime = (float)Time.GameTimer.TotalMilliseconds;
-		}
-
-		internal void Initialize()
-		{
-			if (!IsDisposed)
-			{
-				Terminate();
-			}
-
-			// Initialize the decoder.
-			_theoraDecoder = TheoraPlay.THEORAPLAY_startDecodeFile(
-				_fileName,
-				150, // Arbitrarily 5 seconds in a 30fps movie.
-				//#if !VIDEOPLAYER_OPENGL
-				//                TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_RGBA
-				//#else
-				TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_IYUV
-				//#endif
-			);
-
-			// Wait until the decoder is ready.
-			while (TheoraPlay.THEORAPLAY_isInitialized(_theoraDecoder) == 0)
-			{
-				Thread.Sleep(10);
-			}
-
-			InitializeVideo();
-			_videoDisposed = false;
-			IsDisposed = false;
 		}
 
 		private void InitializeVideo()
@@ -239,7 +242,7 @@ namespace OgvPlayer
 			State = MediaState.Stopped;
 
 			IsDisposed = false;
-
+			
 			Log.Editor.Write("Theora player stopped!");
 		}
 
