@@ -12,9 +12,6 @@ let testDir   = @".\test\"
 let deployDir = @".\deploy\"
 let packagesDir = @".\packages"
 
-// tools
-let fxCopRoot = @".\Tools\FxCop\FxCopCmd.exe"
-
 // version info
 let version = "0.2"  // or retrieve from CI server
 
@@ -24,11 +21,11 @@ Target "Clean" (fun _ ->
 )
 
 Target "SetVersions" (fun _ ->
-    CreateCSharpAssemblyInfo "./src/app/Calculator/Properties/AssemblyInfo.cs"
-        [Attribute.Title "Calculator Command line tool"
-         Attribute.Description "Sample project for FAKE - F# MAKE"
-         Attribute.Guid "A539B42C-CB9F-4a23-8E57-AF4E7CEE5BAA"
-         Attribute.Product "Calculator"
+    CreateCSharpAssemblyInfo "./CorePlugin/Properties/AssemblyInfo.cs"
+        [Attribute.Title "OgvVideo player"
+         Attribute.Description "Ogv video player plugin for Duality Game engine"
+         Attribute.Guid "00c8792c-39b8-4558-acf9-03013402301a"
+         Attribute.Product "OgvVideo"
          Attribute.Version version
          Attribute.FileVersion version]
 
@@ -61,16 +58,6 @@ Target "NUnitTest" (fun _ ->
                    OutputFile = testDir + @"TestResults.xml"})
 )
 
-Target "FxCop" (fun _ ->
-    !+ (buildDir + @"\**\*.dll")
-      ++ (buildDir + @"\**\*.exe")
-        |> Scan
-        |> FxCop (fun p ->
-            {p with
-                ReportFileName = testDir + "FXCopResults.xml";
-                ToolPath = fxCopRoot})
-)
-
 Target "Zip" (fun _ ->
     !+ (buildDir + "\**\*.*")
         -- "*.zip"
@@ -82,8 +69,7 @@ Target "Zip" (fun _ ->
 "Clean"
   ==> "SetVersions"
   ==> "CompileApp"
-  ==> "CompileTest"
-  ==> "FxCop"
+  ==> "CompileTest"  
   ==> "NUnitTest"
   ==> "Zip"
 
