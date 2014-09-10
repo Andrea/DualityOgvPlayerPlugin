@@ -28,41 +28,30 @@ Target "SetVersions" (fun _ ->
          Attribute.Product "OgvVideo"
          Attribute.Version version
          Attribute.FileVersion version]
-
-    CreateCSharpAssemblyInfo "./src/app/CalculatorLib/Properties/AssemblyInfo.cs"
-        [Attribute.Title "Calculator library"
-         Attribute.Description "Sample project for FAKE - F# MAKE"
-         Attribute.Guid "EE5621DB-B86B-44eb-987F-9C94BCC98441"
-         Attribute.Product "Calculator"
-         Attribute.Version version
-         Attribute.FileVersion version]
-)
-let setParams defaults =
-    { defaults with
-        Verbosity = Some(Quiet)
-        Targets = ["Build"]
-        Properties =
-            [
-                "Optimize", "True"
-                "DebugSymbols", "True"
-                "Configuration", "Release"
-                "AllowUnsafeBlocks", "True"
-            ]
-    }
-Target "CompileUnsafe" (fun _ ->       
-    !! @"**\OgcPlayerCorePlugin.csproj"            
-      |> MSBuildRelease buildDir "Build" 
-      |> Log "AppBuild-Output: "
 )
 
-Target "Compile" (fun _ ->       
-    !! @"**\EditorPlugin.csproj"      
-      |> MSBuildRelease buildDir "Build" 
-      |> Log "AppBuild-Output: "
+Target "CompileUnsafe" (fun _ ->          
+    let buildMode = getBuildParamOrDefault "buildMode" "Release"
+    let setParams defaults =
+        { defaults with
+            Verbosity = Some(Quiet)
+            Targets = ["Build"]
+            Properties =
+                [
+                    "Optimize", "True"
+                    "DebugSymbols", "True"
+                    "Configuration", buildMode
+                    "AllowUnsafeBlocks", "True"
+                ]
+        }
+    build setParams "./ProjectPlugins.sln"    
+    |> DoNothing  
 )
+
+
 
 Target "CompileTest" (fun _ ->
-    !! @"**\*.Tests.csproj"
+    !! @"**\*.Tests.*sproj"
       |> MSBuildDebug testDir "Build"
       |> Log "TestBuild-Output: "
 )
@@ -83,7 +72,7 @@ Target "CreateNuget" (fun _ ->
             Authors = ["Digital Furnace Games "]
             Project = "OgvVideoPlayer"
             Description = "Plays ogv videos. Uses Fmod for the sound"                               
-            OutputPath = "bin"
+            OutputPath = deployDir
             Summary = "Plays ogv videos. Uses Fmod for the sound"            
             Version = buildVersion
             AccessKey = ""
@@ -101,9 +90,9 @@ Target "Zip" (fun _ ->
 // Dependencies
 "Clean"
   ==> "SetVersions"
-  ==> "CompileApp"
-  ==> "CompileTest"  
-  ==> "NUnitTest"
+  ==> "CompileUnsafe"
+//  ==> "CompileTest"  
+  //==> "NUnitTest"
   ==> "CreateNuget"
 
 // start build
