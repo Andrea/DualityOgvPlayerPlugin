@@ -12,9 +12,11 @@ open Duality
         ogv.Disposed = false
 
 
-    [<Property>]
+   (* [<Property>]
     let ``When player playing then not disposed``() =
         let ogv =new OgvComponent()
+        ogv.FileName <- "cats.ogg"
         ogv.OnInit Duality.Component.InitContext.Activate
-        ogv.Play
+        ogv.Play()
         ogv.Disposed = false
+   *)

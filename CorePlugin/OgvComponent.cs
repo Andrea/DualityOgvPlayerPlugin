@@ -91,11 +91,9 @@ namespace OgvPlayer
 
 		internal void Initialize()
 		{
-			if (!IsDisposed)
-			{
-				_theoraVideo.Terminate();
-			}
-			_fmodTheoraStream = new FmodTheoraStream();
+		    if (!IsDisposed && _theoraVideo != null) 
+                _theoraVideo.Terminate();
+		    _fmodTheoraStream = new FmodTheoraStream();
 			_fmodTheoraStream.Initialize();
 
 			_theoraVideo = new TheoraVideo();
