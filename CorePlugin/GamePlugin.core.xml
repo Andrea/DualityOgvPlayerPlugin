@@ -4,10 +4,5 @@
         <name>OgvPlayer.GamePlugin.core</name>
     </assembly>
     <members>
-        <member name="T:OgvPlayer.DebugCorePlugin">
-            <summary>
-            Defines a Duality core plugin.
-            </summary>
-        </member>
     </members>
 </doc>
