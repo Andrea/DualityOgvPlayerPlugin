@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{AFE883F3-72B4-4C7C-A1D1-44EDC09C8F6E}</ProjectGuid>
+    <ProjectGuid>{1DC301F5-644D-4109-96C4-2158ABDED70D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>__Namespace__</RootNamespace>
@@ -42,7 +42,7 @@
     <Reference Include="OpenTK">
       <HintPath>..\..\..\OpenTK.dll</HintPath>
     </Reference>
-	<Reference Include="ScriptingPlugin.core">
+    <Reference Include="ScriptingPlugin.core">
       <HintPath>..\..\..\Plugins\ScriptingPlugin.core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
