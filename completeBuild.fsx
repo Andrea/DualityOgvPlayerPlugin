@@ -37,15 +37,32 @@ Target "SetVersions" (fun _ ->
          Attribute.Version version
          Attribute.FileVersion version]
 )
+let setParams defaults =
+    { defaults with
+        Verbosity = Some(Quiet)
+        Targets = ["Build"]
+        Properties =
+            [
+                "Optimize", "True"
+                "DebugSymbols", "True"
+                "Configuration", "Release"
+                "AllowUnsafeBlocks", "True"
+            ]
+    }
+Target "CompileUnsafe" (fun _ ->       
+    !! @"**\OgcPlayerCorePlugin.csproj"            
+      |> MSBuildRelease buildDir "Build" 
+      |> Log "AppBuild-Output: "
+)
 
-Target "CompileApp" (fun _ ->
-    !! @"src\app\**\*.csproj"
-      |> MSBuildRelease buildDir "Build"
+Target "Compile" (fun _ ->       
+    !! @"**\EditorPlugin.csproj"      
+      |> MSBuildRelease buildDir "Build" 
       |> Log "AppBuild-Output: "
 )
 
 Target "CompileTest" (fun _ ->
-    !! @"src\test\**\*.csproj"
+    !! @"**\*.Tests.csproj"
       |> MSBuildDebug testDir "Build"
       |> Log "TestBuild-Output: "
 )
@@ -56,6 +73,22 @@ Target "NUnitTest" (fun _ ->
                  {p with
                    DisableShadowCopy = true;
                    OutputFile = testDir + @"TestResults.xml"})
+)
+
+Target "CreateNuget" (fun _ ->
+    // Copy all the package files into a package folder
+    
+    NuGet (fun p -> 
+        {p with
+            Authors = ["Digital Furnace Games "]
+            Project = "OgvVideoPlayer"
+            Description = "Plays ogv videos. Uses Fmod for the sound"                               
+            OutputPath = "bin"
+            Summary = "Plays ogv videos. Uses Fmod for the sound"            
+            Version = buildVersion
+            AccessKey = ""
+            Publish = false }) 
+            "nuget/OgvPlayer.nuspec"
 )
 
 Target "Zip" (fun _ ->
@@ -71,7 +104,8 @@ Target "Zip" (fun _ ->
   ==> "CompileApp"
   ==> "CompileTest"  
   ==> "NUnitTest"
-  ==> "Zip"
+  ==> "CreateNuget"
 
 // start build
-RunTargetOrDefault "Zip"
+RunTargetOrDefault "CreateNuget"
+

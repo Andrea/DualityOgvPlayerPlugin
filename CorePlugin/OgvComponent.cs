@@ -104,8 +104,6 @@ namespace OgvPlayer
 			IsDisposed = false;
 		}
 
-
-
 		private void DecodeAudio()
 		{
 			const int bufferSize = 4096 * 2;
