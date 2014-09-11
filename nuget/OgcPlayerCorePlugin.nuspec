@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>OgvVideoPlayer</id>
-        <version>0.10.0.0</version>
+        <version>0.1.0.0</version>
         <authors>Digital Furnace Games</authors>
         <owners>Digital Furnace Games</owners>
         <licenseUrl>https://github.com/Andrea/DualityOgvPlayerPlugin/blob/master/LICENSE</licenseUrl>
@@ -16,7 +16,6 @@
         <tags>"ogv video-player"</tags>
     </metadata>
     <files>
-        <file src="..\CorePlugin\bin\Release\OgvPlayer.GamePlugin.core.dll" target="lib\net40\OgvPlayer.GamePlugin.core.dll" />
-        <file src="..\CorePlugin\bin\Release\OgvPlayer.GamePlugin.core.pdb" target="lib\net40\OgvPlayer.GamePlugin.core.pdb" />
+        <file src="..\CorePlugin\bin\Release\OgvPlayer.GamePlugin.core.dll" target="lib\net40\OgvPlayer.GamePlugin.core.dll" />        
     </files>
 </package>

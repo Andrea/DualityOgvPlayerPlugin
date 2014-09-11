@@ -34,12 +34,11 @@ Target "CompileUnsafe" (fun _ ->
     let buildMode = getBuildParamOrDefault "buildMode" "Release"
     let setParams defaults =
         { defaults with
-            Verbosity = Some(Quiet)
+            Verbosity = Some(Normal)
             Targets = ["Build"]
             Properties =
                 [
-                    "Optimize", "True"
-                    "DebugSymbols", "True"
+                    "Optimize", "True"                    
                     "Configuration", buildMode
                     "AllowUnsafeBlocks", "True"
                 ]

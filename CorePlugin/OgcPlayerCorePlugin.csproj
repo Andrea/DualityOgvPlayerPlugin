@@ -39,6 +39,7 @@
     <DocumentationFile>GamePlugin.core.xml</DocumentationFile>
     <NoWarn>1591,1592,1573,1571,1570,1572</NoWarn>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Duality, Version=1.1.0.0, Culture=neutral, processorArchitecture=x86">
