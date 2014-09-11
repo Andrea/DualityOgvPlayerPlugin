@@ -11,6 +11,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{BE9014EA-54EC-4BAC-87D9-969AF06E6AC8}"
 	ProjectSection(SolutionItems) = preProject
 		completeBuild.fsx = completeBuild.fsx
+		nuget\OgvPlayer.nuspec = nuget\OgvPlayer.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{8B0ECF44-9E7E-4ABE-AB63-22BC6A151061}"

@@ -13,9 +13,12 @@
     <description>@description@</description>
     <releaseNotes>@releaseNotes@</releaseNotes>
     <copyright>Copyright Andrea Magnorsky 2014</copyright>    
-    <tags>GitHub API Octokit</tags>
+    <tags>"ogv video-player"</tags>
     @dependencies@
     @references@
   </metadata>
-  @files@
+  <files>
+    <file src="..\bin\DualityOgvPlayerPlugin.dll" target="lib/net40" />
+    <file src="..\bin\DualityOgvPlayerPlugin.pdb" target="lib/net40" />
+  </files>
 </package>
