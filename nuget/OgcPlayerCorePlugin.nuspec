@@ -16,7 +16,7 @@
         <tags>"ogv video-player"</tags>
     </metadata>
     <files>
-        <file src="CorePlugin\bin\Release\OgvPlayer.GamePlugin.core.dll" target="lib\net40\OgvPlayer.GamePlugin.core.dll" />
-        <file src="CorePlugin\bin\Release\OgvPlayer.GamePlugin.core.pdb" target="lib\net40\OgvPlayer.GamePlugin.core.pdb" />
+        <file src="..\CorePlugin\bin\Release\OgvPlayer.GamePlugin.core.dll" target="lib\net40\OgvPlayer.GamePlugin.core.dll" />
+        <file src="..\CorePlugin\bin\Release\OgvPlayer.GamePlugin.core.pdb" target="lib\net40\OgvPlayer.GamePlugin.core.pdb" />
     </files>
 </package>

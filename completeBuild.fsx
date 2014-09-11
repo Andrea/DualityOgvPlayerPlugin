@@ -49,13 +49,6 @@ Target "CompileUnsafe" (fun _ ->
 )
 
 
-
-Target "CompileTest" (fun _ ->
-    !! @"**\*.Tests.*sproj"
-      |> MSBuildDebug testDir "Build"
-      |> Log "TestBuild-Output: "
-)
-
 Target "NUnitTest" (fun _ ->
     !! (testDir + @"\NUnit.Test.*.dll")
       |> NUnit (fun p ->
@@ -68,16 +61,11 @@ Target "CreateNuget" (fun _ ->
     // Copy all the package files into a package folder
     
     NuGet (fun p -> 
-        {p with
-            Authors = ["Digital Furnace Games "]
-            Project = "OgvVideoPlayer"
-            Description = "Plays ogv videos. Uses Fmod for the sound"                               
-            OutputPath = deployDir
-            Summary = "Plays ogv videos. Uses Fmod for the sound"            
+        {p with 
             Version = buildVersion
             AccessKey = ""
             Publish = false }) 
-            "nuget/OgvPlayer.nuspec"
+            "nuget/OgcPlayerCorePlugin.nuspec"
 )
 
 Target "Zip" (fun _ ->
@@ -97,4 +85,5 @@ Target "Zip" (fun _ ->
 
 // start build
 RunTargetOrDefault "CreateNuget"
+
 
