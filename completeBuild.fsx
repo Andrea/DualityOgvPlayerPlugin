@@ -62,7 +62,7 @@ Target "CreateNuget" (fun _ ->
     
     NuGet (fun p -> 
         {p with 
-            Version = buildVersion
+            Version = version
             AccessKey = ""
             Publish = false }) 
             "nuget/OgcPlayerCorePlugin.nuspec"
