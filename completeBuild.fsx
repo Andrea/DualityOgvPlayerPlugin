@@ -68,12 +68,6 @@ Target "CreateNuget" (fun _ ->
             "nuget/OgcPlayerCorePlugin.nuspec"
 )
 
-Target "Zip" (fun _ ->
-    !+ (buildDir + "\**\*.*")
-        -- "*.zip"
-        |> Scan
-        |> Zip buildDir (deployDir + "Calculator." + version + ".zip")
-)
 
 // Dependencies
 "Clean"
@@ -85,5 +79,3 @@ Target "Zip" (fun _ ->
 
 // start build
 RunTargetOrDefault "CreateNuget"
-
-
