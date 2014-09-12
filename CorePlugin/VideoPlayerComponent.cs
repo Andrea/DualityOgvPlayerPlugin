@@ -16,14 +16,11 @@ namespace OgvPlayer
             if (DualityApp.Keyboard.KeyReleased(Key.Q)&&_ogvComponent.State != MediaState.Playing)
             {
                 _ogvComponent.Play();
-				Log.Editor.Write("Play");
 	            
             }
             if (DualityApp.Keyboard.KeyReleased(Key.O))
             {
                 _ogvComponent.Stop();
-				Log.Editor.Write("Stopped!");
-
             }
         }
     }
