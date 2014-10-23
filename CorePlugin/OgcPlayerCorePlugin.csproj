@@ -82,7 +82,6 @@
     <Compile Include="OgvFragmentShader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TheoraVideo.cs" />
-    <Compile Include="VideoPlayerComponent.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\libs\TheoraPlayCs\libogg.dll">

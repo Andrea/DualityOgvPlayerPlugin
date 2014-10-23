@@ -81,6 +81,8 @@ namespace OgvPlayer
 
 		public void OnShutdown(ShutdownContext context)
 		{
+            if(context == ShutdownContext.Deactivate)
+                Stop();
 			if(_theoraVideo != null) 
 				_theoraVideo.Terminate();
 
