@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using Duality;
 
 namespace OgvPlayer
 {
@@ -37,38 +38,49 @@ namespace OgvPlayer
 		public void InitializeVideo(string fileName)
 		{
 			// Initialize the decoder.
-			_theoraDecoder = TheoraPlay.THEORAPLAY_startDecodeFile(
-				fileName,
-				150, // Arbitrarily 5 seconds in a 30fps movie.
-				//#if !VIDEOPLAYER_OPENGL
-				//                TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_RGBA
-				//#else
-				TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_IYUV
-				//#endif
-				);
+		    try
+		    {
+		        _theoraDecoder = TheoraPlay.THEORAPLAY_startDecodeFile(
+		            fileName,
+		            150, // Arbitrarily 5 seconds in a 30fps movie.
+		            //#if !VIDEOPLAYER_OPENGL
+		            //                TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_RGBA
+		            //#else
+		            TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_IYUV
+		            //#endif
+		            );
 
-			// Wait until the decoder is ready.
-			while (TheoraPlay.THEORAPLAY_isInitialized(_theoraDecoder) == 0)
-			{
-				Thread.Sleep(10);
-			}
-			// Initialize the video stream pointer and get our first frame.
-			if (TheoraPlay.THEORAPLAY_hasVideoStream(_theoraDecoder) != 0)
-			{
-				while (_videoStream == IntPtr.Zero)
-				{
-					_videoStream = TheoraPlay.THEORAPLAY_getVideo(_theoraDecoder);
-					Thread.Sleep(10);
-				}
+		        // Wait until the decoder is ready.
+		        while (TheoraPlay.THEORAPLAY_isInitialized(_theoraDecoder) == 0)
+		        {
+		            Thread.Sleep(10);
+		        }
+		        // Initialize the video stream pointer and get our first frame.
+		        if (TheoraPlay.THEORAPLAY_hasVideoStream(_theoraDecoder) != 0)
+		        {
+		            while (_videoStream == IntPtr.Zero)
+		            {
+		                _videoStream = TheoraPlay.THEORAPLAY_getVideo(_theoraDecoder);
+		                Thread.Sleep(10);
+		            }
 
-				var frame = TheoraPlay.getVideoFrame(_videoStream);
+		            var frame = TheoraPlay.getVideoFrame(_videoStream);
 
-				// We get the FramesPerSecond from the first frame.
-				FramesPerSecond = (float)frame.fps;
-				Width = (int)frame.width;
-				Height = (int)frame.height;
-			}
-			_disposed = false;
+		            // We get the FramesPerSecond from the first frame.
+		            FramesPerSecond = (float)frame.fps;
+		            Width = (int)frame.width;
+		            Height = (int)frame.height;
+		        }
+		        _disposed = false;
+		    }
+		    catch (BadImageFormatException exception)
+		    {
+		        Log.Editor.WriteError("There was a problem initializing Theoraplay possibly running on x64, we only support x86 for the moment.{1} {0} {1} {2}", exception.Message , Environment.NewLine, exception.StackTrace);
+		    }
+            catch (Exception exception)
+            {
+                Log.Editor.WriteError("There was a problem initializing video with Theoraplay. {1} {0} {1} {2}", exception.Message, Environment.NewLine, exception.StackTrace);
+            }
 		}
 
 		public void Terminate()
