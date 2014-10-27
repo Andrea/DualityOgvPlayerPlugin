@@ -9,15 +9,15 @@ RestorePackages()
 // Directories
 let buildDir  = @".\build\"
 let testDir   = @".\test\"
-let deployDir = @".\deploy\"
 let packagesDir = @".\packages"
 
 // version info
-let version = "0.3.3"  // or retrieve from CI server
+let version = "{build}"  // or retrieve from CI server
+
 
 // Targets
 Target "Clean" (fun _ ->
-    CleanDirs [buildDir; testDir; deployDir]
+    CleanDirs [buildDir; testDir]
 )
 
 Target "SetVersions" (fun _ ->
@@ -62,6 +62,7 @@ Target "CreateNuget" (fun _ ->
     NuGet (fun p -> 
         {p with 
             Version = version
+            Project = "OgcPlayerCorePlugin"
             PublishUrl = getBuildParamOrDefault "nugetrepo" ""
             AccessKey = getBuildParamOrDefault "nugetkey" ""
             Publish = hasBuildParam "nugetrepo"
