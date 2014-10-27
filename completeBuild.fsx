@@ -12,7 +12,7 @@ let testDir   = @".\test\"
 let packagesDir = @".\packages"
 
 // version info
-let version = "{build}"  // or retrieve from CI server
+let version = "0.3.3"  // or retrieve from CI server
 
 
 // Targets
