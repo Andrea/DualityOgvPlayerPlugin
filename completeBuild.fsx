@@ -13,7 +13,7 @@ let deployDir = @".\deploy\"
 let packagesDir = @".\packages"
 
 // version info
-let version = "0.3"  // or retrieve from CI server
+let version = "0.3.3"  // or retrieve from CI server
 
 // Targets
 Target "Clean" (fun _ ->
