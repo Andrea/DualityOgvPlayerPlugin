@@ -138,6 +138,8 @@ namespace OgvPlayer
 			_elapsedFrameTime += Time.LastDelta * Time.TimeScale;
 
 			_theoraVideo.UpdateVideo(_elapsedFrameTime);
+            if(_theoraVideo.IsFinished)
+                Stop();
 		}
 
 

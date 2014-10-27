@@ -50,10 +50,17 @@ namespace OgvPlayer
 		            //#endif
 		            );
 
+		        var counter = 0;
 		        // Wait until the decoder is ready.
-		        while (TheoraPlay.THEORAPLAY_isInitialized(_theoraDecoder) == 0)
+		        while (TheoraPlay.THEORAPLAY_isInitialized(_theoraDecoder) == 0 && counter < 100)
 		        {
-		            Thread.Sleep(10);
+		            Thread.Sleep(10); 
+		            counter++;
+		        }
+		        if (counter >= 100)
+		        {
+		            Log.Editor.WriteError("Could not initialize {0}. Operation timed out sorry", fileName);
+                    return;
 		        }
 		        // Initialize the video stream pointer and get our first frame.
 		        if (TheoraPlay.THEORAPLAY_hasVideoStream(_theoraDecoder) != 0)
@@ -124,9 +131,12 @@ namespace OgvPlayer
 
 				}
 			}
+		    IsFinished = TheoraPlay.THEORAPLAY_isDecoding(_theoraDecoder) == 0;
 		}
 
-		/*
+	    public bool IsFinished { get; private set; }
+
+	    /*
 		 Theora divides the pixel array up into three separate color planes, one for each of the Y 0 , Cb, and Cr components of the pixel. The Y
 		0 plane is also called the luma plane, and the Cb and Cr planes are also called the chroma planes. 
 		In some pixel formats, the chroma planes are subsampled by a factor of two in one or both directions. This means that the width or height of the chroma
