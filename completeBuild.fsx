@@ -62,10 +62,13 @@ Target "CreateNuget" (fun _ ->
     NuGet (fun p -> 
         {p with 
             Version = version
-            AccessKey = ""
-            Publish = false }) 
-            "nuget/OgcPlayerCorePlugin.nuspec"
+            PublishUrl = getBuildParamOrDefault "nugetrepo" ""
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetrepo"
+        }) 
+        "nuget/OgcPlayerCorePlugin.nuspec"
 )
+
 
 
 // Dependencies
@@ -74,6 +77,7 @@ Target "CreateNuget" (fun _ ->
   ==> "CompileUnsafe"
   //==> "NUnitTest"
   ==> "CreateNuget"
+  
 
 // start build
 RunTargetOrDefault "CreateNuget"
