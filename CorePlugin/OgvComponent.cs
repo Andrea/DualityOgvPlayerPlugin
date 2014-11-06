@@ -15,7 +15,6 @@ namespace OgvPlayer
 	public class OgvComponent : Renderer, ICmpInitializable, ICmpUpdatable
 	{
 		private string _fileName;
-
 		[NonSerialized]
 		private double _startTime;
 		[NonSerialized]
@@ -24,16 +23,12 @@ namespace OgvPlayer
 		private Texture _textureTwo;
 		[NonSerialized]
 		private Texture _textureThree;
-
 		[NonSerialized]
 		private float _elapsedFrameTime;
-		
 		[NonSerialized]
 		private TheoraVideo _theoraVideo;
-
 		[NonSerialized]
 		private FmodTheoraStream _fmodTheoraStream;
-
 		[NonSerialized]
 		private CancellationTokenSource _cancellationTokenSource;
 
@@ -54,6 +49,13 @@ namespace OgvPlayer
 		
 		[EditorHintFlags(MemberFlags.Invisible)]
 		public bool IsDisposed { get; set; }
+		
+        [EditorHintFlags(MemberFlags.Invisible)]
+		public bool IsFinished { get
+		    {
+		        return _theoraVideo != null && _theoraVideo.IsFinished;
+		    }
+		}
 
 		public ContentRef<Material> Material { get; set; }
 
@@ -72,7 +74,12 @@ namespace OgvPlayer
 			if (string.IsNullOrEmpty(_fileName))
 				return;
 
-			Initialize();
+		    if (Environment.Is64BitProcess)
+		    {
+		        Log.Editor.WriteWarning("The video player is not supported on 64 bit processes, and this is one.");
+                return;
+		    }
+            Initialize();
 
 			_textureOne = new Texture(_theoraVideo.Width, _theoraVideo.Height, format: PixelInternalFormat.Luminance);
 			_textureTwo = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2, format: PixelInternalFormat.Luminance);
@@ -85,7 +92,7 @@ namespace OgvPlayer
                 Stop();
 			if(_theoraVideo != null) 
 				_theoraVideo.Terminate();
-
+            
 			IsDisposed = true;
 			_cancellationTokenSource = null;
 			_startTime = (float)Time.GameTimer.TotalMilliseconds;
@@ -141,8 +148,7 @@ namespace OgvPlayer
             if(_theoraVideo.IsFinished)
                 Stop();
 		}
-
-
+        
 		public void Stop()
 		{
 			if (IsDisposed)
