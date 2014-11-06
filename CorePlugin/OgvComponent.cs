@@ -7,6 +7,7 @@ using Duality.Components;
 using Duality.Drawing;
 using Duality.Editor;
 using Duality.Resources;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace OgvPlayer
@@ -31,6 +32,8 @@ namespace OgvPlayer
 		private FmodTheoraStream _fmodTheoraStream;
 		[NonSerialized]
 		private CancellationTokenSource _cancellationTokenSource;
+		[NonSerialized]
+		private VertexC1P3T2[] _vertices;
 
 		public string FileName
 		{
@@ -60,11 +63,16 @@ namespace OgvPlayer
 		public ContentRef<Material> Material { get; set; }
 
 		[EditorHintFlags(MemberFlags.Invisible)]
-
 		public override float BoundRadius
 		{
-			get { return float.MaxValue; }
+			get
+			{
+				return Rect.Transform(GameObj.Transform.Scale, GameObj.Transform.Scale).BoundingRadius;
+			}
 		}
+
+		public Rect Rect { get; set; }
+		public ColorRgba ColourTint { get; set; }
 
 		public void OnInit(InitContext context)
 		{
@@ -182,14 +190,28 @@ namespace OgvPlayer
 			_startTime = (float)Time.GameTimer.TotalMilliseconds;
 		}
 
+		public override bool IsVisible(IDrawDevice device)
+		{
+			if ((device.VisibilityMask & VisibilityFlag.ScreenOverlay) != (VisibilityGroup & VisibilityFlag.ScreenOverlay))
+				return false;
+
+			if ((VisibilityGroup & device.VisibilityMask & VisibilityFlag.AllGroups) == VisibilityFlag.None)
+				return false;
+
+			return device.IsCoordInView(GameObj.Transform.Pos, BoundRadius);
+		}
+
 		public override void Draw(IDrawDevice device)
 		{
+			PrepareVertices(device, ColourTint, new Rect(1f, 1f));
+			DrawDesignTimeVisuals(device);
+
 			if (State != MediaState.Playing)
 				return;
 
-			if (_theoraVideo.ElapsedMilliseconds == 0)
+			if (_theoraVideo == null || _theoraVideo.ElapsedMilliseconds == 0)
 				return;
-			
+
 			Texture.Bind(_textureOne);
 			GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, _theoraVideo.Width, _theoraVideo.Height, PixelFormat.Luminance, PixelType.UnsignedByte,
 				_theoraVideo.GetYColorPlane());
@@ -207,13 +229,70 @@ namespace OgvPlayer
 			drawTechnique.TextureTwo = _textureTwo;
 			drawTechnique.TextureThree = _textureThree;
 
-			var targetRect = new Rect(device.TargetSize);
-			device.AddVertices(Material, VertexMode.Quads,
-				new VertexC1P3T2(targetRect.MinimumX, targetRect.MinimumY, 0.0f, 0.0f, 0.0f),
-				new VertexC1P3T2(targetRect.MaximumX, targetRect.MinimumY, 0.0f, 1, 0.0f),
-				new VertexC1P3T2(targetRect.MaximumX, targetRect.MaximumY, 0.0f, 1, 1),
-				new VertexC1P3T2(targetRect.MinimumX, targetRect.MaximumY, 0.0f, 0.0f, 1));
+			device.AddVertices(Material, VertexMode.Quads, _vertices);
 		}
 
+		private void DrawDesignTimeVisuals(IDrawDevice device)
+		{
+			if (DualityApp.ExecContext != DualityApp.ExecutionContext.Editor)
+				return;
+
+			if (device == null)
+				return;
+
+			var canvas = new Canvas(device);
+			canvas.DrawRect(GameObj.Transform.Pos.X + Rect.MinimumX, GameObj.Transform.Pos.Y + Rect.MinimumY, GameObj.Transform.Pos.Z, Rect.W, Rect.H);
+		}
+
+		private void PrepareVertices(IDrawDevice device, ColorRgba mainClr, Rect uvRect)
+		{
+			var posTemp = GameObj.Transform.Pos;
+			var scaleTemp = 1.0f;
+			device.PreprocessCoords(ref posTemp, ref scaleTemp);
+
+			Vector2 xDot, yDot;
+			MathF.GetTransformDotVec(GameObj.Transform.Angle, scaleTemp, out xDot, out yDot);
+
+			var rectTemp = Rect.Transform(GameObj.Transform.Scale, GameObj.Transform.Scale);
+			var edge1 = rectTemp.TopLeft;
+			var edge2 = rectTemp.BottomLeft;
+			var edge3 = rectTemp.BottomRight;
+			var edge4 = rectTemp.TopRight;
+
+			MathF.TransformDotVec(ref edge1, ref xDot, ref yDot);
+			MathF.TransformDotVec(ref edge2, ref xDot, ref yDot);
+			MathF.TransformDotVec(ref edge3, ref xDot, ref yDot);
+			MathF.TransformDotVec(ref edge4, ref xDot, ref yDot);
+
+			if (_vertices == null || _vertices.Length != 4) _vertices = new VertexC1P3T2[4];
+
+			_vertices[0].Pos.X = posTemp.X + edge1.X;
+			_vertices[0].Pos.Y = posTemp.Y + edge1.Y;
+			_vertices[0].Pos.Z = posTemp.Z;
+			_vertices[0].TexCoord.X = uvRect.X;
+			_vertices[0].TexCoord.Y = uvRect.Y;
+			_vertices[0].Color = mainClr;
+
+			_vertices[1].Pos.X = posTemp.X + edge2.X;
+			_vertices[1].Pos.Y = posTemp.Y + edge2.Y;
+			_vertices[1].Pos.Z = posTemp.Z;
+			_vertices[1].TexCoord.X = uvRect.X;
+			_vertices[1].TexCoord.Y = uvRect.MaximumY;
+			_vertices[1].Color = mainClr;
+
+			_vertices[2].Pos.X = posTemp.X + edge3.X;
+			_vertices[2].Pos.Y = posTemp.Y + edge3.Y;
+			_vertices[2].Pos.Z = posTemp.Z;
+			_vertices[2].TexCoord.X = uvRect.MaximumX;
+			_vertices[2].TexCoord.Y = uvRect.MaximumY;
+			_vertices[2].Color = mainClr;
+
+			_vertices[3].Pos.X = posTemp.X + edge4.X;
+			_vertices[3].Pos.Y = posTemp.Y + edge4.Y;
+			_vertices[3].Pos.Z = posTemp.Z;
+			_vertices[3].TexCoord.X = uvRect.MaximumX;
+			_vertices[3].TexCoord.Y = uvRect.Y;
+			_vertices[3].Color = mainClr;
+		}
 	}
 }
