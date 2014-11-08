@@ -6,10 +6,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescriptionAttribute("Ogv video player plugin for Duality Game engine")]
 [assembly: GuidAttribute("00c8792c-39b8-4558-acf9-03013402301a")]
 [assembly: AssemblyProductAttribute("OgvVideo")]
-[assembly: AssemblyVersionAttribute("0.2")]
-[assembly: AssemblyFileVersionAttribute("0.2")]
+[assembly: AssemblyVersionAttribute("0.3.5")]
+[assembly: AssemblyFileVersionAttribute("0.3.5")]
 namespace System {
     internal static class AssemblyVersionInformation {
-        internal const string Version = "0.2";
+        internal const string Version = "0.3.5";
     }
 }
