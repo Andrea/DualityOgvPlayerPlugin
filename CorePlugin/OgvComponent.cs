@@ -54,9 +54,11 @@ namespace OgvPlayer
 		public bool IsDisposed { get; set; }
 		
         [EditorHintFlags(MemberFlags.Invisible)]
-		public bool IsFinished { get
+		public bool IsFinished 
+		{ 
+			get
 		    {
-		        return _theoraVideo != null && _theoraVideo.IsFinished;
+				return _theoraVideo == null || _theoraVideo.IsFinished;
 		    }
 		}
 
