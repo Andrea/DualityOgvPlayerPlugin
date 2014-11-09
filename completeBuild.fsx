@@ -62,12 +62,12 @@ Target "CreateNuget" (fun _ ->
     NuGet (fun p -> 
         {p with 
             Version = version
-            Project = "OgcPlayerCorePlugin"
+            Project = "OgvPlayerCorePlugin"
             PublishUrl = getBuildParamOrDefault "nugetrepo" ""
             AccessKey = getBuildParamOrDefault "nugetkey" ""
             Publish = hasBuildParam "nugetrepo"
         }) 
-        "nuget/OgcPlayerCorePlugin.nuspec"
+        "nuget/OgvPlayerCorePlugin.nuspec"
 )
 
 // Dependencies
