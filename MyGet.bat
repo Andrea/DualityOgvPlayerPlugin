@@ -1,4 +1,7 @@
 @echo off
 cls
-".nuget\NuGet.exe" "Install" "FAKE" "-OutputDirectory" "packages" "-ExcludeVersion"
-"packages\FAKE\tools\Fake.exe" CompleteBuild.fsx
+".paket\paket.bootstrapper.exe" 
+echo "installed"
+".paket\paket.exe" "restore"
+echo "restored packages"
+"packages\FAKE\tools\Fake.exe" "CompleteBuild.fsx"

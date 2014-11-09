@@ -10,3 +10,4 @@ nuget FsCheck.Nunit 1.0.0
 nuget NUnit 2.6.3
 nuget NUnit.Runners 2.6.3
 nuget NuGet.CommandLine
+nuget FAKE
