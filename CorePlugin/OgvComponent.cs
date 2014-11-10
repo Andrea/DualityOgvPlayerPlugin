@@ -34,6 +34,8 @@ namespace OgvPlayer
 		private CancellationTokenSource _cancellationTokenSource;
 		[NonSerialized]
 		private VertexC1P3T2[] _vertices;
+		[NonSerialized]
+		private MediaState _state;
 
 		public string FileName
 		{
@@ -47,13 +49,15 @@ namespace OgvPlayer
 				_fileName = value;
 			}
 		}
+
 		[EditorHintFlags(MemberFlags.Invisible)]
-		public MediaState State { get; private set; }
-		
+		public MediaState State
+		{
+			get { return _state; }
+			private set { _state = value; }
+		}
+
 		[EditorHintFlags(MemberFlags.Invisible)]
-		public bool IsDisposed { get; set; }
-		
-        [EditorHintFlags(MemberFlags.Invisible)]
 		public bool IsFinished 
 		{ 
 			get
@@ -98,27 +102,26 @@ namespace OgvPlayer
 
 		public void OnShutdown(ShutdownContext context)
 		{
-            if(context == ShutdownContext.Deactivate)
-                Stop();
-			if(_theoraVideo != null) 
+			if (context != ShutdownContext.Deactivate)
+				return;
+
+			Stop();
+			if (_theoraVideo != null)
 				_theoraVideo.Terminate();
-            
-			IsDisposed = true;
+
 			_cancellationTokenSource = null;
-			_startTime = (float)Time.GameTimer.TotalMilliseconds;
 		}
 
 		internal void Initialize()
 		{
-		    if (!IsDisposed && _theoraVideo != null) 
+		    if (_theoraVideo != null) 
                 _theoraVideo.Terminate();
+
 		    _fmodTheoraStream = new FmodTheoraStream();
 			_fmodTheoraStream.Initialize();
 
 			_theoraVideo = new TheoraVideo();
 			_theoraVideo.InitializeVideo(_fileName);
-
-			IsDisposed = false;
 		}
 
 		private void DecodeAudio()
@@ -161,24 +164,22 @@ namespace OgvPlayer
         
 		public void Stop()
 		{
-			if (IsDisposed)
-				return;
 			if (State == MediaState.Stopped)
 				return;
-			_cancellationTokenSource.Cancel();
+
+			if(_cancellationTokenSource != null)
+				_cancellationTokenSource.Cancel();
+
 			_fmodTheoraStream.Stop();
 			_theoraVideo.Terminate();
 			State = MediaState.Stopped;
-			IsDisposed = false;
 		}
 
 		public void Play()
 		{
-			if (IsDisposed)
-				return;
-
 			if (State != MediaState.Stopped)
 				return;
+
 			State = MediaState.Playing;
 			if (_cancellationTokenSource == null || _cancellationTokenSource.Token.IsCancellationRequested)
 			{
@@ -186,7 +187,7 @@ namespace OgvPlayer
 				Task.Factory.StartNew(DecodeAudio, _cancellationTokenSource.Token);
 			}
 
-			if (_theoraVideo.Disposed)
+			if (_theoraVideo == null || _theoraVideo.Disposed)
 				Initialize();
 
 			_startTime = (float)Time.GameTimer.TotalMilliseconds;
