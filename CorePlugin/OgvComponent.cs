@@ -66,6 +66,8 @@ namespace OgvPlayer
 		    }
 		}
 
+	    public bool CanRunOnThisArchitecture { get { return !Environment.Is64BitProcess; } }
+
 		public ContentRef<Material> Material { get; set; }
 
 		[EditorHintFlags(MemberFlags.Invisible)]
@@ -106,7 +108,7 @@ namespace OgvPlayer
 				return;
 
 			Stop();
-			if (_theoraVideo != null)
+			if (_theoraVideo != null && CanRunOnThisArchitecture)
 				_theoraVideo.Terminate();
 
 			_cancellationTokenSource = null;
@@ -154,12 +156,16 @@ namespace OgvPlayer
 				return;
 			if (Time.GameTimer.TotalMilliseconds - _startTime < 800)
 				return;
-			
+			if(!CanRunOnThisArchitecture)
+                return;
 			_elapsedFrameTime += Time.LastDelta * Time.TimeScale;
 
-			_theoraVideo.UpdateVideo(_elapsedFrameTime);
-            if(_theoraVideo.IsFinished)
-                Stop();
+		    if (_theoraVideo != null && CanRunOnThisArchitecture )
+		    {
+		        _theoraVideo.UpdateVideo(_elapsedFrameTime);
+		        if(_theoraVideo.IsFinished)
+		            Stop();
+		    }
 		}
         
 		public void Stop()
@@ -170,9 +176,12 @@ namespace OgvPlayer
 			if(_cancellationTokenSource != null)
 				_cancellationTokenSource.Cancel();
 
-			_fmodTheoraStream.Stop();
-			_theoraVideo.Terminate();
-			State = MediaState.Stopped;
+		    if (CanRunOnThisArchitecture)
+		    {
+		        if (_fmodTheoraStream != null) _fmodTheoraStream.Stop();
+		        if (_theoraVideo != null) _theoraVideo.Terminate();
+		    }
+		    State = MediaState.Stopped;
 		}
 
 		public void Play()
@@ -180,6 +189,8 @@ namespace OgvPlayer
 			if (State != MediaState.Stopped)
 				return;
 
+            if(!CanRunOnThisArchitecture)
+                Log.Editor.WriteWarning("Can't play video on this architecture sorry ");
 			State = MediaState.Playing;
 			if (_cancellationTokenSource == null || _cancellationTokenSource.Token.IsCancellationRequested)
 			{
