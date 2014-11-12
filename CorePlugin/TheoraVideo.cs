@@ -37,6 +37,10 @@ namespace OgvPlayer
 
 		public void InitializeVideo(string fileName)
 		{
+			// set finished to true before we start so that anyone polling on this flag afterwards won't get stuck in a loop in the case
+			//  where initialization fails.
+			IsFinished = true;
+
 			// Initialize the decoder.
 		    try
 		    {
@@ -77,6 +81,7 @@ namespace OgvPlayer
 		            FramesPerSecond = (float)frame.fps;
 		            Width = (int)frame.width;
 		            Height = (int)frame.height;
+			        IsFinished = false;
 		        }
 		        _disposed = false;
 		    }
