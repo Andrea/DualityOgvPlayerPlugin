@@ -97,9 +97,9 @@ namespace OgvPlayer
 		    }
             Initialize();
 
-			_textureOne = new Texture(_theoraVideo.Width, _theoraVideo.Height, format: PixelInternalFormat.Luminance);
-			_textureTwo = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2, format: PixelInternalFormat.Luminance);
-			_textureThree = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2, format: PixelInternalFormat.Luminance);
+			_textureOne = new Texture(_theoraVideo.Width, _theoraVideo.Height);
+			_textureTwo = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2);
+			_textureThree = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2);
 		}
 
 		public void OnShutdown(ShutdownContext context)
