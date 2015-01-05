@@ -3,8 +3,8 @@ source https://www.nuget.org/api/v2
 source C:\nuget-cache
 
 nuget AdamsLair.WinForms 0.1.8
-nuget Duality 0.1.181
-nuget DualityEditor 0.1.177
+nuget Duality 0.1.192
+nuget DualityEditor 0.1.192
 nuget FsCheck 1.0.0
 nuget FsCheck.Nunit 1.0.0
 nuget NUnit 2.6.3

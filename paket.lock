@@ -2,12 +2,9 @@ NUGET
   remote: https://www.myget.org/F/6416d9912a7c4d46bc983870fb440d25
   specs:
     AdamsLair.WinForms (0.1.8)
-    Duality (0.1.181)
-    DualityEditor (0.1.177)
+    Duality (0.1.192)
+    DualityEditor (0.1.192)
       AdamsLair.WinForms (>= 0.1.8)
-  remote: https://www.nuget.org/api/v2
-  specs:
-    FAKE (3.9.2)
     FsCheck (1.0.0)
     FsCheck.Nunit (1.0.0)
       FsCheck (>= 1.0.0)
@@ -16,3 +13,6 @@ NUGET
     NuGet.CommandLine (2.8.3)
     NUnit (2.6.3)
     NUnit.Runners (2.6.3)
+  remote: https://www.nuget.org/api/v2
+  specs:
+    FAKE (3.9.2)

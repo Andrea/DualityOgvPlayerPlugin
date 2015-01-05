@@ -43,7 +43,7 @@ Target "CompileUnsafe" (fun _ ->
                     "AllowUnsafeBlocks", "True"
                 ]
         }
-    build setParams "./ProjectPlugins.sln"    
+    build setParams "./DualityOgvPlayer.sln"    
     |> DoNothing  
 )
 
@@ -74,7 +74,7 @@ Target "CreateNuget" (fun _ ->
 "Clean"
   ==> "SetVersions"
   ==> "CompileUnsafe"
-  //==> "NUnitTest"
+//  ==> "NUnitTest"
   ==> "CreateNuget"
   
 
