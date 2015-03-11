@@ -7,7 +7,6 @@ using Duality.Components;
 using Duality.Drawing;
 using Duality.Editor;
 using Duality.Resources;
-using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace OgvPlayer
@@ -36,6 +35,8 @@ namespace OgvPlayer
 		private VertexC1P3T2[] _vertices;
 		[NonSerialized]
 		private MediaState _state;
+		[NonSerialized]
+		private Canvas _canvas;
 
 		public string FileName
 		{
@@ -81,6 +82,7 @@ namespace OgvPlayer
 
 		public Rect Rect { get; set; }
 		public ColorRgba ColourTint { get; set; }
+		public ScreenAspectOptions ScreenAspectOptions { get; set; }
 
 		public void OnInit(InitContext context)
 		{
@@ -217,7 +219,6 @@ namespace OgvPlayer
 
 		public override void Draw(IDrawDevice device)
 		{
-			PrepareVertices(device, ColourTint, new Rect(1f, 1f));
 			DrawDesignTimeVisuals(device);
 
 			if (State != MediaState.Playing)
@@ -243,7 +244,46 @@ namespace OgvPlayer
 			drawTechnique.TextureTwo = _textureTwo;
 			drawTechnique.TextureThree = _textureThree;
 
-			device.AddVertices(Material, VertexMode.Quads, _vertices);
+			var rect = GetScreenRect();
+			var z = GameObj.Transform == null ? 0 : GameObj.Transform.Pos.Z;
+
+			if (_canvas == null)
+			{
+				_canvas = new Canvas(device);
+				_canvas.State.SetMaterial(Material);
+			}
+			
+			_canvas.State.ColorTint = ColourTint;
+			_canvas.FillRect(rect.X, rect.Y, z, rect.W, rect.H);
+		}
+
+		private Rect GetScreenRect()
+		{
+			var rect = Rect.Empty;
+			if (ScreenAspectOptions == ScreenAspectOptions.MaintainAspectRatio)
+			{
+				var videoRatio = (float) _theoraVideo.Width/_theoraVideo.Height;
+				var screenRatio = DualityApp.TargetResolution.X/DualityApp.TargetResolution.Y;
+
+				if (videoRatio > screenRatio)
+				{
+					rect.W = DualityApp.TargetResolution.X;
+					rect.H = rect.W / videoRatio;
+					rect.Y = (DualityApp.TargetResolution.Y - rect.H) / 2;
+				}
+				else
+				{
+					rect.H = DualityApp.TargetResolution.Y;
+					rect.W = rect.H * videoRatio;
+					rect.X = (DualityApp.TargetResolution.X - rect.W) / 2;
+				}
+			}
+			else
+			{
+				rect = new Rect(0, 0, DualityApp.TargetResolution.X, DualityApp.TargetResolution.Y);
+			}
+
+			return rect;
 		}
 
 		private void DrawDesignTimeVisuals(IDrawDevice device)
@@ -256,57 +296,6 @@ namespace OgvPlayer
 
 			var canvas = new Canvas(device);
 			canvas.DrawRect(GameObj.Transform.Pos.X + Rect.MinimumX, GameObj.Transform.Pos.Y + Rect.MinimumY, GameObj.Transform.Pos.Z, Rect.W, Rect.H);
-		}
-
-		private void PrepareVertices(IDrawDevice device, ColorRgba mainClr, Rect uvRect)
-		{
-			var posTemp = GameObj.Transform.Pos;
-			var scaleTemp = 1.0f;
-			device.PreprocessCoords(ref posTemp, ref scaleTemp);
-
-			Vector2 xDot, yDot;
-			MathF.GetTransformDotVec(GameObj.Transform.Angle, scaleTemp, out xDot, out yDot);
-
-			var rectTemp = Rect.Transform(GameObj.Transform.Scale, GameObj.Transform.Scale);
-			var edge1 = rectTemp.TopLeft;
-			var edge2 = rectTemp.BottomLeft;
-			var edge3 = rectTemp.BottomRight;
-			var edge4 = rectTemp.TopRight;
-
-			MathF.TransformDotVec(ref edge1, ref xDot, ref yDot);
-			MathF.TransformDotVec(ref edge2, ref xDot, ref yDot);
-			MathF.TransformDotVec(ref edge3, ref xDot, ref yDot);
-			MathF.TransformDotVec(ref edge4, ref xDot, ref yDot);
-
-			if (_vertices == null || _vertices.Length != 4) _vertices = new VertexC1P3T2[4];
-
-			_vertices[0].Pos.X = posTemp.X + edge1.X;
-			_vertices[0].Pos.Y = posTemp.Y + edge1.Y;
-			_vertices[0].Pos.Z = posTemp.Z;
-			_vertices[0].TexCoord.X = uvRect.X;
-			_vertices[0].TexCoord.Y = uvRect.Y;
-			_vertices[0].Color = mainClr;
-
-			_vertices[1].Pos.X = posTemp.X + edge2.X;
-			_vertices[1].Pos.Y = posTemp.Y + edge2.Y;
-			_vertices[1].Pos.Z = posTemp.Z;
-			_vertices[1].TexCoord.X = uvRect.X;
-			_vertices[1].TexCoord.Y = uvRect.MaximumY;
-			_vertices[1].Color = mainClr;
-
-			_vertices[2].Pos.X = posTemp.X + edge3.X;
-			_vertices[2].Pos.Y = posTemp.Y + edge3.Y;
-			_vertices[2].Pos.Z = posTemp.Z;
-			_vertices[2].TexCoord.X = uvRect.MaximumX;
-			_vertices[2].TexCoord.Y = uvRect.MaximumY;
-			_vertices[2].Color = mainClr;
-
-			_vertices[3].Pos.X = posTemp.X + edge4.X;
-			_vertices[3].Pos.Y = posTemp.Y + edge4.Y;
-			_vertices[3].Pos.Z = posTemp.Z;
-			_vertices[3].TexCoord.X = uvRect.MaximumX;
-			_vertices[3].TexCoord.Y = uvRect.Y;
-			_vertices[3].Color = mainClr;
 		}
 	}
 }
