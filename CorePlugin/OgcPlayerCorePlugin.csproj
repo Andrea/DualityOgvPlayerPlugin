@@ -61,6 +61,7 @@
     <Compile Include="OgvComponent.cs" />
     <Compile Include="OgvFragmentShader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ScreenAspectOptions.cs" />
     <Compile Include="TheoraVideo.cs" />
   </ItemGroup>
   <ItemGroup>
