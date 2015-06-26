@@ -4,10 +4,15 @@ source C:\nuget-cache
 
 nuget AdamsLair.WinForms 0.1.8
 nuget Duality 0.1.192
+nuget Duality.Android 0.1.7
 nuget DualityEditor 0.1.192
+nuget Farseer.Duality.Android 0.1.7
 nuget FsCheck 1.0.0
 nuget FsCheck.Nunit 1.0.0
+nuget Mono.Cecil 0.9.5.4 framework: >= net45
 nuget NUnit 2.6.3
 nuget NUnit.Runners 2.6.3
 nuget NuGet.CommandLine
 nuget FAKE
+nuget OpenTK.Duality.Android 0.1.50
+nuget ScriptingPlugin 0.1.44 framework: >= net45

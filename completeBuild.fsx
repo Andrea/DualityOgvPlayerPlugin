@@ -9,12 +9,25 @@ RestorePackages()
 // Directories
 let buildDir  = @".\build\"
 let testDir   = @".\test\"
-let packagesDir = @".\packages"
-
+let deployDir = @".\deploy"
+let nugetDir = @".nuget\nuget.exe"
 // version info
-let version = "0.3.13"  // or retrieve from CI server
 
 
+type ProjectInfo = {
+    Name : string
+    Title : string
+    Description : string
+    Version: string
+    Authors: string list 
+}
+let info = {
+    Name ="DualityOgvVideoPlayerPlugin"
+    Title = "Duality OgvVideo player plugin"
+    Description = "Ogv video player plugin for Duality Game engine"
+    Version =if isLocalBuild then "0.4-Local" else "0.4"+ buildVersion
+    Authors =  ["Andrew O'Connor";"Andrea Magnorsky"]
+}
 // Targets
 Target "Clean" (fun _ ->
     CleanDirs [buildDir; testDir]
@@ -22,17 +35,16 @@ Target "Clean" (fun _ ->
 
 Target "SetVersions" (fun _ ->
     CreateCSharpAssemblyInfo "./CorePlugin/Properties/AssemblyInfo.cs"
-        [Attribute.Title "OgvVideo player"
-         Attribute.Description "Ogv video player plugin for Duality Game engine"
+        [Attribute.Title info.Title
+         Attribute.Description info.Description
          Attribute.Guid "00c8792c-39b8-4558-acf9-03013402301a"
-         Attribute.Product "OgvVideo"
-         Attribute.Version version
-         Attribute.FileVersion version]
+         Attribute.Product info.Name
+         Attribute.Version info.Version
+         Attribute.FileVersion info.Version]
 )
 
-Target "CompileUnsafe" (fun _ ->          
-    let buildMode = getBuildParamOrDefault "buildMode" "Release"
-    let setParams defaults =
+let buildMode = getBuildParamOrDefault "buildMode" "Release"
+let setParams defaults =
         { defaults with
             Verbosity = Some(Normal)
             Targets = ["Build"]
@@ -43,7 +55,14 @@ Target "CompileUnsafe" (fun _ ->
                     "AllowUnsafeBlocks", "True"
                 ]
         }
+
+Target "CompileUnsafe" (fun _ ->              
     build setParams "./DualityOgvPlayer.sln"    
+    |> DoNothing  
+)
+
+Target "CompileUnsafeAndroid" (fun _ ->              
+    build setParams "./DualityOgvPlayer.Android.sln"    
     |> DoNothing  
 )
 
@@ -56,12 +75,11 @@ Target "NUnitTest" (fun _ ->
                    OutputFile = testDir + @"TestResults.xml"})
 )
 
-Target "CreateNuget" (fun _ ->
-    // Copy all the package files into a package folder
-    
+Target "CreateNuget" (fun _ ->   
     NuGet (fun p -> 
         {p with 
-            Version = version
+            Version = info.Version
+            ToolPath = nugetDir
             Project = "OgvPlayerCorePlugin"
             PublishUrl = getBuildParamOrDefault "nugetrepo" ""
             AccessKey = getBuildParamOrDefault "nugetkey" ""
@@ -69,14 +87,36 @@ Target "CreateNuget" (fun _ ->
         }) 
         "nuget/OgvPlayerCorePlugin.nuspec"
 )
+Target "AndroidPack" (fun _ ->    
+    
+    NuGet (fun p -> 
+        {p with
+            Authors = info.Authors
+            Project = info.Name+".Android"
+            Version = info.Version
+            Description = info.Description                                           
+            OutputPath = deployDir    
+            ToolPath = nugetDir                    
+            Summary = info.Description       
+            WorkingDir = nugetDir   
+            Tags = "behaviour-tree behavior-tree AI"           
+            PublishUrl = getBuildParamOrDefault "nugetUrl" ""
+            AccessKey = getBuildParamOrDefault "nugetkey" ""            
+            Publish = hasBuildParam "nugetkey"  
+            }) 
+            "nuget/Duality.OgvVideoPlayePluginr.Android.nuspec"
+)
 
 // Dependencies
 "Clean"
   ==> "SetVersions"
   ==> "CompileUnsafe"
-//  ==> "NUnitTest"
   ==> "CreateNuget"
   
-
+"Clean"
+  ==> "SetVersions"
+  ==> "CompileUnsafeAndroid"
+  ==> "AndroidPack"
+  
 // start build
 RunTargetOrDefault "CreateNuget"
