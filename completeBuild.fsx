@@ -30,7 +30,7 @@ let info = {
 }
 // Targets
 Target "Clean" (fun _ ->
-    CleanDirs [buildDir; testDir]
+    CleanDirs [buildDir; testDir;deployDir]
 )
 
 Target "SetVersions" (fun _ ->
