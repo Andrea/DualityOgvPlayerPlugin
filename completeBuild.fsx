@@ -116,7 +116,7 @@ Target "AndroidPack" (fun _ ->
 "Clean"
   ==> "SetVersions"
   ==> "CompileUnsafeAndroid"
-//  ==> "AndroidPack"
+  ==> "AndroidPack"
   
 // start build
 RunTargetOrDefault "CreateNuget"
