@@ -98,7 +98,7 @@ Target "AndroidPack" (fun _ ->
             OutputPath = deployDir    
             ToolPath = nugetDir                    
             Summary = info.Description       
-            WorkingDir = nugetDir   
+            WorkingDir = @"\"   
             Tags = "behaviour-tree behavior-tree AI"           
             PublishUrl = getBuildParamOrDefault "nugetUrl" ""
             AccessKey = getBuildParamOrDefault "nugetkey" ""            
@@ -116,7 +116,7 @@ Target "AndroidPack" (fun _ ->
 "Clean"
   ==> "SetVersions"
   ==> "CompileUnsafeAndroid"
-  ==> "AndroidPack"
+//  ==> "AndroidPack"
   
 // start build
 RunTargetOrDefault "CreateNuget"

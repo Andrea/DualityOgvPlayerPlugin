@@ -11,6 +11,26 @@ using OpenTK.Graphics.OpenGL;
 
 namespace OgvPlayer
 {
+
+	/// <summary>
+	/// HACK this is a hack, it will not render video on android or anything :|
+	/// the reason to create this hack was to decide how to play video later
+	/// </summary>
+	public interface ITheoraVideo : IDisposable
+	{
+		bool IsFinished { get; }
+		int Width { get; }
+		int Height { get;}
+		bool Disposed { get;  }
+		decimal ElapsedMilliseconds { get; set; }
+		IntPtr TheoraDecoder { get; }
+		void Terminate();
+		void InitializeVideo(string fileName);
+		void UpdateVideo(float elapsedFrameTime);
+		IntPtr GetYColorPlane();
+		IntPtr GetCbColorPlane();
+		IntPtr GetCrColorPlane();
+	}
 	[Serializable]
 	public class OgvComponent : Renderer, ICmpInitializable, ICmpUpdatable
 	{
@@ -25,8 +45,13 @@ namespace OgvPlayer
 		private Texture _textureThree;
 		[NonSerialized]
 		private float _elapsedFrameTime;
+#if __ANDROID__
+		[NonSerialized]
+		private ITheoraVideo _theoraVideo;
+#else
 		[NonSerialized]
 		private TheoraVideo _theoraVideo;
+#endif
 		[NonSerialized]
 		private FmodTheoraStream _fmodTheoraStream;
 		[NonSerialized]
@@ -123,14 +148,16 @@ namespace OgvPlayer
 
 		    _fmodTheoraStream = new FmodTheoraStream();
 			_fmodTheoraStream.Initialize();
-
+#if !__ANDROID__
 			_theoraVideo = new TheoraVideo();
+#endif
 			_theoraVideo.InitializeVideo(_fileName);
 		}
 
 		private void DecodeAudio()
 		{
 			const int bufferSize = 4096 * 2;
+#if !__ANDROID__
 
 			while (State != MediaState.Stopped)
 			{
@@ -150,6 +177,7 @@ namespace OgvPlayer
 				if (State == MediaState.Playing)
 					_fmodTheoraStream.Stream(data.ToArray());
 			}
+#endif
 		}
 
 		public void OnUpdate()
