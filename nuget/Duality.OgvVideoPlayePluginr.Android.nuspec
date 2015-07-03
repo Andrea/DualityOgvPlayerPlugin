@@ -13,8 +13,7 @@
     <description>@description@</description>
     <releaseNotes>@releaseNotes@</releaseNotes>
     <copyright>Copyright Andrea Magnorsky; Andrew O'Connor 2015</copyright>    
-    <tags>"ogv video-player"</tags>
-    @dependencies@
+    <tags>"ogv video-player"</tags>     
     @references@
   </metadata>
   <files>
