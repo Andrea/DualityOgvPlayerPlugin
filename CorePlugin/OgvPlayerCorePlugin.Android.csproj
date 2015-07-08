@@ -10,7 +10,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OgvPlayerCorePlugin.Android</RootNamespace>
-    <AssemblyName>OgvPlayerCorePlugin.Android</AssemblyName>
+    <AssemblyName>OgvPlayerCorePlugin.Android.core</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
@@ -39,23 +39,22 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Duality.Android, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Duality.Android.0.1.7\lib\MonoAndroid\Duality.Android.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FarseerDuality, Version=0.1.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Farseer.Duality.Android.0.1.8\lib\MonoAndroid\FarseerDuality.dll</HintPath>
-      <Private>True</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Duality.Android.0.1.27\lib\MonoAndroid\Duality.Android.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Android" />
     <Reference Include="mscorlib" />
-    <Reference Include="OpenTK.Android, Version=0.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+    <Reference Include="OpenTK.Android">
       <HintPath>..\packages\OpenTK.Duality.Android.0.1.50\lib\MonoAndroid\OpenTK.Android.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
+    <Reference Include="TheoraPlay-CS, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\libs\TheoraPlayCS-Android\TheoraPlay-CS.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FmodTheoraStream.cs" />
@@ -71,11 +70,14 @@
     <Compile Include="OgvFragmentShader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScreenAspectOptions.cs" />
+    <Compile Include="TheoraVideo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\Values\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="libfmodevent.so" />
+    <None Include="libfmodex.so" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
@@ -86,16 +88,17 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <EmbeddedNativeLibrary Include="..\libs\TheoraPlayCS-Android\libtheoraplay.so">
+      <Link>armeabi-v7a\libtheoraplay.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedNativeLibrary>
+  </ItemGroup>
   <Choose>
     <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
       <ItemGroup>
         <Reference Include="Ionic.Zip">
           <HintPath>..\packages\Duality\lib\net40\Ionic.Zip.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-        <Reference Include="OpenTK.GLControl">
-          <HintPath>..\packages\Duality\lib\net40\OpenTK.GLControl.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
