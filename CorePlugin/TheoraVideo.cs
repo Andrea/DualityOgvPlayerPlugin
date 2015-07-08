@@ -75,9 +75,9 @@ namespace OgvPlayer
 		                Thread.Sleep(10);
 		            }
 
-		            var frame = TheoraPlay.getVideoFrame(_videoStream);
+					var frame = GetVideoFrame(_videoStream);
 
-		            // We get the FramesPerSecond from the first frame.
+					// We get the FramesPerSecond from the first frame.
 		            FramesPerSecond = (float)frame.fps;
 		            Width = (int)frame.width;
 		            Height = (int)frame.height;
@@ -93,6 +93,22 @@ namespace OgvPlayer
             {
                 Log.Editor.WriteError("There was a problem initializing video with Theoraplay. {1} {0} {1} {2}", exception.Message, Environment.NewLine, exception.StackTrace);
             }
+		}
+
+		/// <summary>
+		/// This method is to override some default behaviour in TheoraPlay-CS that we don't want for Android. Probably a better solution
+		/// would be to update TheoraPlay-CS, but I'm not 100% sure what the change should be as it appears to vary by platform.
+		/// </summary>
+		/// <param name="videoStream"></param>
+		/// <returns></returns>
+		private static unsafe TheoraPlay.THEORAPLAY_VideoFrame GetVideoFrame(IntPtr videoStream)
+		{
+#if __ANDROID__
+			var framePtr = (TheoraPlay.THEORAPLAY_VideoFrame*)videoStream;
+			return *framePtr;
+#else
+			return TheoraPlay.getVideoFrame(videoStream);
+#endif
 		}
 
 		public void Terminate()
@@ -132,7 +148,7 @@ namespace OgvPlayer
 					TheoraPlay.THEORAPLAY_freeVideo(_previousFrame);
 					_previousFrame = _videoStream;
 					_videoStream = nextFrame;
-					_nextVideo = TheoraPlay.getVideoFrame(_videoStream);
+					_nextVideo = GetVideoFrame(_videoStream);
 
 				}
 			}

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.IO;
 using System.Threading.Tasks;
 using Duality;
 using Duality.Components;
@@ -8,6 +8,10 @@ using Duality.Drawing;
 using Duality.Editor;
 using Duality.Resources;
 using OpenTK.Graphics.OpenGL;
+
+#if __ANDROID__
+using Android.Content.Res;
+#endif
 
 namespace OgvPlayer
 {
@@ -27,16 +31,17 @@ namespace OgvPlayer
 		private float _elapsedFrameTime;
 		[NonSerialized]
 		private TheoraVideo _theoraVideo;
+
 		[NonSerialized]
 		private FmodTheoraStream _fmodTheoraStream;
-		[NonSerialized]
-		private CancellationTokenSource _cancellationTokenSource;
 		[NonSerialized]
 		private VertexC1P3T2[] _vertices;
 		[NonSerialized]
 		private MediaState _state;
 		[NonSerialized]
 		private Canvas _canvas;
+
+		private Task _audioThread;
 
 		public string FileName
 		{
@@ -97,11 +102,8 @@ namespace OgvPlayer
 		        Log.Editor.WriteWarning("The video player is not supported on 64 bit processes, and this is one.");
                 return;
 		    }
-            Initialize();
 
-			_textureOne = new Texture(_theoraVideo.Width, _theoraVideo.Height);
-			_textureTwo = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2);
-			_textureThree = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2);
+			Play();
 		}
 
 		public void OnShutdown(ShutdownContext context)
@@ -110,38 +112,52 @@ namespace OgvPlayer
 				return;
 
 			Stop();
-			if (_theoraVideo != null && CanRunOnThisArchitecture)
-				_theoraVideo.Terminate();
-
-			_cancellationTokenSource = null;
 		}
 
 		internal void Initialize()
 		{
-		    if (_theoraVideo != null) 
-                _theoraVideo.Terminate();
+			Stop();
 
 		    _fmodTheoraStream = new FmodTheoraStream();
 			_fmodTheoraStream.Initialize();
 
 			_theoraVideo = new TheoraVideo();
+
+#if __ANDROID__
+			_fileName = ExtractVideoFromAPK(_fileName);
+#endif
 			_theoraVideo.InitializeVideo(_fileName);
+
+			_textureOne = new Texture(_theoraVideo.Width, _theoraVideo.Height, filterMin: TextureMinFilter.Linear);
+			_textureTwo = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2, filterMin: TextureMinFilter.Linear);
+			_textureThree = new Texture(_theoraVideo.Width / 2, _theoraVideo.Height / 2, filterMin: TextureMinFilter.Linear);
+		}
+
+		private void StopVideoIfRunning()
+		{
+			if (_theoraVideo != null && CanRunOnThisArchitecture)
+			{
+				_theoraVideo.Terminate();
+				_theoraVideo = null;
+			}
 		}
 
 		private void DecodeAudio()
 		{
 			const int bufferSize = 4096 * 2;
 
-			while (State != MediaState.Stopped)
+			while (State != MediaState.Stopped && _theoraVideo != null)
 			{
-				while (State != MediaState.Stopped && TheoraPlay.THEORAPLAY_availableAudio(_theoraVideo.TheoraDecoder) == 0)
+				var theoraDecoder = _theoraVideo.TheoraDecoder;
+
+				while (State != MediaState.Stopped && TheoraPlay.THEORAPLAY_availableAudio(theoraDecoder) == 0)
 					continue;
 
 				var data = new List<float>();
 				TheoraPlay.THEORAPLAY_AudioPacket currentAudio;
-				while (data.Count < bufferSize && TheoraPlay.THEORAPLAY_availableAudio(_theoraVideo.TheoraDecoder) > 0)
+				while (data.Count < bufferSize && TheoraPlay.THEORAPLAY_availableAudio(theoraDecoder) > 0)
 				{
-					var audioPtr = TheoraPlay.THEORAPLAY_getAudio(_theoraVideo.TheoraDecoder);
+					var audioPtr = TheoraPlay.THEORAPLAY_getAudio(theoraDecoder);
 					currentAudio = TheoraPlay.getAudioPacket(audioPtr);
 					data.AddRange(TheoraPlay.getSamples(currentAudio.samples, currentAudio.frames * currentAudio.channels));
 					TheoraPlay.THEORAPLAY_freeAudio(audioPtr);
@@ -161,29 +177,13 @@ namespace OgvPlayer
 			if(!CanRunOnThisArchitecture)
                 return;
 			_elapsedFrameTime += Time.LastDelta * Time.TimeScale;
-
+			
 		    if (_theoraVideo != null && CanRunOnThisArchitecture )
-		    {
-		        _theoraVideo.UpdateVideo(_elapsedFrameTime);
+			{
+				_theoraVideo.UpdateVideo(_elapsedFrameTime);
 		        if(_theoraVideo.IsFinished)
 		            Stop();
 		    }
-		}
-        
-		public void Stop()
-		{
-			if (State == MediaState.Stopped)
-				return;
-
-			if(_cancellationTokenSource != null)
-				_cancellationTokenSource.Cancel();
-
-		    if (CanRunOnThisArchitecture)
-		    {
-		        if (_fmodTheoraStream != null) _fmodTheoraStream.Stop();
-		        if (_theoraVideo != null) _theoraVideo.Terminate();
-		    }
-		    State = MediaState.Stopped;
 		}
 
 		public void Play()
@@ -191,19 +191,34 @@ namespace OgvPlayer
 			if (State != MediaState.Stopped)
 				return;
 
-            if(!CanRunOnThisArchitecture)
-                Log.Editor.WriteWarning("Can't play video on this architecture sorry ");
-			State = MediaState.Playing;
-			if (_cancellationTokenSource == null || _cancellationTokenSource.Token.IsCancellationRequested)
-			{
-				_cancellationTokenSource = new CancellationTokenSource();
-				Task.Factory.StartNew(DecodeAudio, _cancellationTokenSource.Token);
-			}
+			if(!CanRunOnThisArchitecture)
+				Log.Editor.WriteWarning("Can't play video on this architecture sorry ");
+
+			WaitForAndDisposeAudioThread();
 
 			if (_theoraVideo == null || _theoraVideo.Disposed)
 				Initialize();
 
+			State = MediaState.Playing;
+			_audioThread = Task.Factory.StartNew(DecodeAudio);
+
 			_startTime = (float)Time.GameTimer.TotalMilliseconds;
+		}
+
+		public void Stop()
+		{
+			if (State == MediaState.Stopped)
+				return;
+
+			State = MediaState.Stopped;
+			WaitForAndDisposeAudioThread();
+
+			if (!CanRunOnThisArchitecture) return;
+
+			if (_fmodTheoraStream != null)
+				_fmodTheoraStream.Stop();
+
+			StopVideoIfRunning();
 		}
 
 		public override bool IsVisible(IDrawDevice device)
@@ -297,5 +312,35 @@ namespace OgvPlayer
 			var canvas = new Canvas(device);
 			canvas.DrawRect(GameObj.Transform.Pos.X + Rect.MinimumX, GameObj.Transform.Pos.Y + Rect.MinimumY, GameObj.Transform.Pos.Z, Rect.W, Rect.H);
 		}
+
+		private void WaitForAndDisposeAudioThread()
+		{
+			if (_audioThread != null && _audioThread.Status == TaskStatus.Running)
+			{
+				_audioThread.Wait();
+				_audioThread = null;
+			}
+		}
+
+#if __ANDROID__
+		private string ExtractVideoFromAPK(string fileName)
+		{
+			var path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+			var videoDir = Path.Combine(path, "video");
+
+			if (Directory.Exists(videoDir) == false)
+				Directory.CreateDirectory(videoDir);
+
+			var originalFileName = _fileName;
+			_fileName = Path.Combine(path, _fileName.Replace("\\", "/"));
+
+			using (var stream = ContentProvider.AndroidAssetManager.Open(originalFileName.Replace("\\", "/"), Access.Streaming))
+			using (var fileStream = new FileStream(_fileName, FileMode.Create))
+			{
+				stream.CopyTo(fileStream);
+				fileStream.Flush();
+			}
+		}
+#endif
 	}
 }
