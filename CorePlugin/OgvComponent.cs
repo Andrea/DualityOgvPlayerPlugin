@@ -340,6 +340,7 @@ namespace OgvPlayer
 				stream.CopyTo(fileStream);
 				fileStream.Flush();
 			}
+			return _fileName;
 		}
 #endif
 	}

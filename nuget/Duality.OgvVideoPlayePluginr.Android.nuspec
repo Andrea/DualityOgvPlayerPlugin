@@ -17,6 +17,6 @@
     @references@
   </metadata>
   <files>
-    <file src="..\Coreplugin\bin\Release\OgvPlayerCorePlugin.Android.dll" target="lib/MonoAndroid" />
+    <file src="..\Coreplugin\bin\Release\OgvPlayerCorePlugin.Android.core.dll" target="lib/MonoAndroid" />
   </files>
 </package>
