@@ -2,8 +2,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OgcPlayerCorePlugin", "CorePlugin\OgcPlayerCorePlugin.csproj", "{AFE883F3-72B4-4C7C-A1D1-44EDC09C8F6E}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{BE9014EA-54EC-4BAC-87D9-969AF06E6AC8}"
 	ProjectSection(SolutionItems) = preProject
 		completeBuild.fsx = completeBuild.fsx
@@ -20,10 +18,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AFE883F3-72B4-4C7C-A1D1-44EDC09C8F6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AFE883F3-72B4-4C7C-A1D1-44EDC09C8F6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AFE883F3-72B4-4C7C-A1D1-44EDC09C8F6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AFE883F3-72B4-4C7C-A1D1-44EDC09C8F6E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{09C8329A-7B5A-4CB8-BA02-7544AC2B8216}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{09C8329A-7B5A-4CB8-BA02-7544AC2B8216}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09C8329A-7B5A-4CB8-BA02-7544AC2B8216}.Release|Any CPU.ActiveCfg = Release|Any CPU

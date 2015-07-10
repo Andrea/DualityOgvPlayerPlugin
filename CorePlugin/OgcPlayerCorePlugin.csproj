@@ -14,6 +14,7 @@
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,23 +42,23 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Duality, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Duality">
       <HintPath>..\packages\Duality.0.1.222\lib\net40\Duality.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="FarseerDuality, Version=3.3.5203.39568, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="FarseerDuality">
       <HintPath>..\packages\Duality.0.1.222\lib\net40\FarseerDuality.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Ionic.Zip, Version=1.9.1.5, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
+    <Reference Include="Ionic.Zip">
       <HintPath>..\packages\Duality.0.1.222\lib\net40\Ionic.Zip.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+    <Reference Include="OpenTK">
       <HintPath>..\packages\Duality.0.1.222\lib\net40\OpenTK.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="OpenTK.GLControl, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+    <Reference Include="OpenTK.GLControl">
       <HintPath>..\packages\Duality.0.1.222\lib\net40\OpenTK.GLControl.dll</HintPath>
       <Private>True</Private>
     </Reference>
@@ -101,6 +102,7 @@
       <Link>libvorbis.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="packages.config" />
     <None Include="packages.OgvPlayerCorePlugin.config" />
   </ItemGroup>
   <ItemGroup>
@@ -133,7 +135,7 @@ copy "$(TargetDir)GamePlugin.core.xml" "$(TargetDir)..\..\..\..\..\Plugins"</Pos
   </Target>
   <Target Name="AfterBuild">
   </Target>
-  -->  
+  -->
   <Choose>
     <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')" />
   </Choose>
