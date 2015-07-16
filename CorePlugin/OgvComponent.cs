@@ -146,6 +146,7 @@ namespace OgvPlayer
 		private void DecodeAudio()
 		{
 			const int bufferSize = 4096 * 2;
+
 			while (State != MediaState.Stopped && _theoraVideo != null)
 			{
 				var theoraDecoder = _theoraVideo.TheoraDecoder;
@@ -195,7 +196,6 @@ namespace OgvPlayer
 
 				if(!CanRunOnThisArchitecture)
 					Log.Editor.WriteWarning("Can't play video on this architecture sorry ");
-
 				WaitForAndDisposeAudioThread();
 
 				if (_theoraVideo == null || _theoraVideo.Disposed)
