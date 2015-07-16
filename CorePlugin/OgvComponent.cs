@@ -188,21 +188,29 @@ namespace OgvPlayer
 
 		public void Play()
 		{
-			if (State != MediaState.Stopped)
-				return;
+			try
+			{
+				if (State != MediaState.Stopped)
+					return;
 
-			if(!CanRunOnThisArchitecture)
-				Log.Editor.WriteWarning("Can't play video on this architecture sorry ");
+				if(!CanRunOnThisArchitecture)
+					Log.Editor.WriteWarning("Can't play video on this architecture sorry ");
 
-			WaitForAndDisposeAudioThread();
+				WaitForAndDisposeAudioThread();
 
-			if (_theoraVideo == null || _theoraVideo.Disposed)
-				Initialize();
+				if (_theoraVideo == null || _theoraVideo.Disposed)
+					Initialize();
 
-			State = MediaState.Playing;
-			_audioThread = Task.Factory.StartNew(DecodeAudio);
+				State = MediaState.Playing;
+				_audioThread = Task.Factory.StartNew(DecodeAudio);
 
-			_startTime = (float)Time.GameTimer.TotalMilliseconds;
+				_startTime = (float)Time.GameTimer.TotalMilliseconds;
+			}
+			catch(Exception exception)
+			{
+				Log.Game.WriteWarning("Video component failed with error {0}",Log.Exception(exception) );
+
+			}
 		}
 
 		public void Stop()
