@@ -25,7 +25,7 @@ let info = {
     Name ="DualityOgvVideoPlayerPlugin"
     Title = "Duality OgvVideo player plugin"
     Description = "Ogv video player plugin for Duality Game engine"
-    Version =if isLocalBuild then "0.4-Local" else "0.4"+ buildVersion
+    Version =if isLocalBuild then "0.5-Local" else "0.5."+ buildVersion
     Authors =  ["Andrew O'Connor";"Andrea Magnorsky"]
 }
 // Targets
