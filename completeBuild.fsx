@@ -81,9 +81,9 @@ Target "CreateNuget" (fun _ ->
             Version = info.Version
             ToolPath = nugetDir
             Project = "OgvPlayerCorePlugin"
-            PublishUrl = getBuildParamOrDefault "nugetrepo" ""
-            AccessKey = getBuildParamOrDefault "nugetkey" ""
-            Publish = hasBuildParam "nugetrepo"
+            PublishUrl = getBuildParamOrDefault "nugetUrl" ""
+            AccessKey = getBuildParamOrDefault "nugetkey" ""            
+            Publish = hasBuildParam "nugetkey"  
         }) 
         "nuget/OgvPlayerCorePlugin.nuspec"
 )
