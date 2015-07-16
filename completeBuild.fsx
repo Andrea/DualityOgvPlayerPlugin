@@ -78,9 +78,12 @@ Target "NUnitTest" (fun _ ->
 Target "CreateNuget" (fun _ ->   
     NuGet (fun p -> 
         {p with 
+            Authors = info.Authors
+            Project = info.Name
+            Description = info.Description
             Version = info.Version
-            ToolPath = nugetDir
-            Project = "OgvPlayerCorePlugin"
+            ToolPath = nugetDir     
+            Summary = info.Description            
             PublishUrl = getBuildParamOrDefault "nugetUrl" ""
             AccessKey = getBuildParamOrDefault "nugetkey" ""            
             Publish = hasBuildParam "nugetkey"  
@@ -99,7 +102,7 @@ Target "AndroidPack" (fun _ ->
             ToolPath = nugetDir                    
             Summary = info.Description       
             WorkingDir = @".\nuget"   
-            Tags = "behaviour-tree behavior-tree AI"           
+            Tags = "video-player ogv"           
             PublishUrl = getBuildParamOrDefault "nugetUrl" ""
             AccessKey = getBuildParamOrDefault "nugetkey" ""            
             Publish = hasBuildParam "nugetkey"  
