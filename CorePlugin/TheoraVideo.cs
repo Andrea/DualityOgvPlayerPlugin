@@ -46,7 +46,7 @@ namespace OgvPlayer
 		    {
 		        _theoraDecoder = TheoraPlay.THEORAPLAY_startDecodeFile(
 		            fileName,
-		            150, // Arbitrarily 5 seconds in a 30fps movie.
+		            30, // Arbitrarily 1 seconds in a 30fps movie.
 		            //#if !VIDEOPLAYER_OPENGL
 		            //                TheoraPlay.THEORAPLAY_VideoFormat.THEORAPLAY_VIDFMT_RGBA
 		            //#else
