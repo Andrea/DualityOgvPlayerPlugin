@@ -4,5 +4,13 @@
         <name>OgvPlayer.GamePlugin.core</name>
     </assembly>
     <members>
+        <member name="M:OgvPlayer.TheoraVideo.GetVideoFrame(System.IntPtr)">
+            <summary>
+            This method is to override some default behaviour in TheoraPlay-CS that we don't want for Android. Probably a better solution
+            would be to update TheoraPlay-CS, but I'm not 100% sure what the change should be as it appears to vary by platform.
+            </summary>
+            <param name="videoStream"></param>
+            <returns></returns>
+        </member>
     </members>
 </doc>
