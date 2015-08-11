@@ -6,6 +6,7 @@ namespace OgvPlayer
 	public enum ScreenAspectOptions
 	{
 		MaintainAspectRatio,
-		FillScreen
+		FillScreen,
+		None
 	}
 }

@@ -7,6 +7,7 @@ using Duality.Components;
 using Duality.Drawing;
 using Duality.Editor;
 using Duality.Resources;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 #if __ANDROID__
@@ -205,6 +206,7 @@ namespace OgvPlayer
 				_audioThread = Task.Factory.StartNew(DecodeAudio);
 
 				_startTime = (float)Time.GameTimer.TotalMilliseconds;
+				_elapsedFrameTime = 0;
 			}
 			catch(Exception exception)
 			{
@@ -277,6 +279,7 @@ namespace OgvPlayer
 			}
 			
 			_canvas.State.ColorTint = ColourTint;
+			_canvas.State.TransformScale = new Vector2(GameObj.Transform.Scale);
 			_canvas.FillRect(rect.X, rect.Y, z, rect.W, rect.H);
 		}
 
@@ -301,11 +304,15 @@ namespace OgvPlayer
 					rect.X = (DualityApp.TargetResolution.X - rect.W) / 2;
 				}
 			}
-			else
+			else if(ScreenAspectOptions == ScreenAspectOptions.FillScreen)
 			{
 				rect = new Rect(0, 0, DualityApp.TargetResolution.X, DualityApp.TargetResolution.Y);
 			}
-
+			else
+			{
+				rect = new Rect(GameObj.Transform.Pos.X, GameObj.Transform.Pos.Y, Rect.W, Rect.H);
+			}
+			
 			return rect;
 		}
 
@@ -318,6 +325,7 @@ namespace OgvPlayer
 				return;
 
 			var canvas = new Canvas(device);
+			canvas.State.TransformScale = new Vector2(GameObj.Transform.Scale);
 			canvas.DrawRect(GameObj.Transform.Pos.X + Rect.MinimumX, GameObj.Transform.Pos.Y + Rect.MinimumY, GameObj.Transform.Pos.Z, Rect.W, Rect.H);
 		}
 
