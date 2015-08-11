@@ -33,7 +33,7 @@ void main()
    rgb.g = dot(yuv, Gcoeff);
    rgb.b = dot(yuv, Bcoeff);
    
-   gl_FragColor = vec4(rgb, 1.0);
+   gl_FragColor = vec4(rgb, gl_Color.a);
 }";
 
 		public OgvFragmentShader()
