@@ -279,7 +279,6 @@ namespace OgvPlayer
 			}
 			
 			_canvas.State.ColorTint = ColourTint;
-			_canvas.State.TransformScale = new Vector2(GameObj.Transform.Scale);
 			_canvas.FillRect(rect.X, rect.Y, z, rect.W, rect.H);
 		}
 
@@ -311,6 +310,7 @@ namespace OgvPlayer
 			else
 			{
 				rect = new Rect(GameObj.Transform.Pos.X, GameObj.Transform.Pos.Y, Rect.W, Rect.H);
+				rect = rect.Transform(GameObj.Transform.Scale, GameObj.Transform.Scale);
 			}
 			
 			return rect;
