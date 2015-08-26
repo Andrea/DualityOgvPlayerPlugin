@@ -310,7 +310,7 @@ namespace OgvPlayer
 			else
 			{
 				rect = new Rect(GameObj.Transform.Pos.X, GameObj.Transform.Pos.Y, Rect.W, Rect.H);
-				rect = rect.Transform(GameObj.Transform.Scale, GameObj.Transform.Scale);
+				rect = new Rect(rect.X, rect.Y, rect.W * GameObj.Transform.Scale, rect.H * GameObj.Transform.Scale);
 			}
 			
 			return rect;
