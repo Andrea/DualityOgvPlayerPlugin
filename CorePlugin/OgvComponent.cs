@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Duality;
 using Duality.Components;
@@ -153,7 +154,15 @@ namespace OgvPlayer
 				var theoraDecoder = _theoraVideo.TheoraDecoder;
 
 				while (State != MediaState.Stopped && TheoraPlay.THEORAPLAY_availableAudio(theoraDecoder) == 0)
-					continue;
+				{
+					// don't use all of the cpu while waiting for data
+					Thread.Sleep(1);
+
+					// if the game object has somehow been disposed with the state being set to stopped, then the thread will never
+					// exit, so check for that explicitly here
+					if (GameObj != null && GameObj.Disposed)
+						return;
+				}
 
 				var data = new List<float>();
 				TheoraPlay.THEORAPLAY_AudioPacket currentAudio;
